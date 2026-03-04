@@ -161,7 +161,7 @@ Command: "Topcoder: Quick Navigate" (`Ctrl+Shift+T T`):
 │ $(comment) Open Forum — 2 new posts        │
 │ $(clock)  Timeline — 4h 12m remaining      │
 │ $(checklist) Requirements — 5/8 done       │
-│ $(file)   Attachments — 3 files            │
+│ $(cloud-upload) Submissions — 2 submitted   │
 │ $(gear)   Settings                          │
 └────────────────────────────────────────────┘
 ```
