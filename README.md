@@ -26,10 +26,10 @@ All features rely exclusively on **existing Topcoder v5/v6 APIs** — no new end
 
 | File | Description | Scoring Area |
 |------|-------------|-------------|
-| [wireframes.md](wireframes.md) | 6 detailed text-based wireframes (WF1–WF6) with annotations | 50% — Wireframes |
+| [wireframes.md](wireframes.md) | 7 wireframes (WF1–WF7) with annotations + end-to-end user flow diagram | 50% — Wireframes |
 | [glossary.md](glossary.md) | 59-entry developer glossary: every UI element, interaction, data concept | 50% — Glossary |
-| [architecture.md](architecture.md) | Component diagrams, 8-endpoint API table, auth flow, security, performance, error handling | 25% — Architecture + API |
-| [dev-requirements.md](dev-requirements.md) | Prerequisites, dependencies, file structure, package.json contributions, build, testing, risks | 50% — Dev Requirements |
+| [architecture.md](architecture.md) | Component diagrams, 8-endpoint API table with verified sample payloads, field-to-UI mapping, auth flow, security, performance, error handling | 25% — Architecture + API |
+| [dev-requirements.md](dev-requirements.md) | Prerequisites, dependencies, file structure, package.json, build, testing, risks, requirement traceability matrix, quality gates | 50% — Dev Requirements |
 | [extras.md](extras.md) | 5 bonus enhancement ideas (AI extraction, spec diff, dry-run, dashboard, shortcuts) | 25% — Innovation |
 
 ---
@@ -104,16 +104,16 @@ All 8 API calls target **existing** Topcoder endpoints:
 
 | # | Endpoint | Purpose |
 |---|----------|---------|
-| 1 | `GET /v6/challenges` | List active challenges |
-| 2 | `GET /v6/challenges/{id}` | Challenge detail + spec |
+| 1 | `GET /v5/challenges` | List active challenges |
+| 2 | `GET /v5/challenges/{id}` | Challenge detail + spec |
 | 3 | `GET /v5/challenges/{id}/attachments` | Attachment files |
-| 4 | `GET /v5/resources` | Resource roles |
+| 4 | `GET /v5/resources` | Resource roles (registrants) |
 | 5 | `GET /v5/challenge-discussions` | Forum posts |
 | 6 | `GET /v5/submissions` | Submission history |
 | 7 | `GET /v5/members/{handle}` | Member profile |
 | 8 | `POST auth0/oauth/token` | Authentication |
 
-Full details with query params, auth headers, response fields, and caching strategy in [architecture.md](architecture.md#4-api-specification-table).
+Full details with query params, auth headers, response fields, caching strategy, and **verified sample payloads** in [architecture.md](architecture.md#10-api-verification-appendix). Requirement traceability matrix and quality gates in [dev-requirements.md](dev-requirements.md#11-requirement-traceability-matrix).
 
 ---
 

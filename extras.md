@@ -46,7 +46,7 @@ Challenge specs are sometimes updated mid-phase (copilot clarifications, scope c
 Detect spec updates and show a visual diff between the previously cached version and the latest version.
 
 ### Implementation
-1. On each spec refresh (`GET /v6/challenges/{id}`), compare `description` field against the cached version in `globalState`.
+1. On each spec refresh (`GET /v5/challenges/{id}`), compare `description` field against the cached version in `globalState`.
 2. If different, show a notification: "Spec updated for {challenge name}. View changes?"
 3. On click, open a VS Code diff editor:
    ```typescript
@@ -111,7 +111,7 @@ A webview-based dashboard showing all active challenges in a card grid layout wi
 
 ### Implementation
 - Webview panel using CSS Grid for responsive card layout.
-- Each card is a self-contained component with data from `GET /v6/challenges`.
+- Each card is a self-contained component with data from `GET /v5/challenges`.
 - Cards sorted by deadline urgency (soonest first).
 - Click actions route to existing commands (`topcoder.openSpec`, `topcoder.openForum`).
 - Command: "Topcoder: Open Dashboard".

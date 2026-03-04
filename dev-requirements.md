@@ -467,3 +467,91 @@ CHANGELOG.md
 ```
 
 Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included in the `.vsix` package.
+
+---
+
+## 11. Requirement Traceability Matrix
+
+> **Purpose:** Maps every challenge spec requirement to its implementing feature module, wireframe, API endpoint, and test case — ensuring full coverage and auditability.
+
+| Req ID | Spec Requirement | Tier | Feature Module | Wireframe(s) | API Endpoint(s) | Test Case(s) | Status |
+|--------|-----------------|------|---------------|--------------|-----------------|-------------|--------|
+| R-01 | Wireframes for all key screens | — | N/A (design) | WF1–WF7 | — | Visual review | ✅ Covered |
+| R-02 | Glossary defining UI elements | — | N/A (design) | glossary.md | — | Content review (59 entries) | ✅ Covered |
+| R-03 | Architecture with existing API usage | — | `architecture.md` | — | EP-1 through EP-8 | API appendix verification | ✅ Covered |
+| R-04 | Browse active challenges in sidebar | A | `challenge-provider.ts` | WF1 | EP-1: `GET /v5/challenges` | `challenge-provider.test.ts`: tree node labels, icons, children | ✅ Covered |
+| R-05 | Render challenge spec as markdown | A | `webview-manager.ts` | WF2 | EP-2: `GET /v5/challenges/{id}` | `api-client.test.ts`: detail fetch; manual: webview renders | ✅ Covered |
+| R-06 | Requirements checklist with checkboxes | A/B | `webview-manager.ts`, `requirement-checker.ts` | WF2, WF5 | EP-2 (description field) | `requirement-checker.test.ts`: extraction; manual: checkbox toggle | ✅ Covered |
+| R-07 | Status bar countdown timer | A | `status-bar.ts` | WF3 | EP-2 (phases field) | Manual: color coding at thresholds | ✅ Covered |
+| R-08 | Download/view attachments | A | `webview-manager.ts` | WF2 | EP-3: `GET /v5/challenges/{id}/attachments` | `api-client.test.ts`: attachment list; manual: download | ✅ Covered |
+| R-09 | Show registrants | A | `challenge-provider.ts` | WF1 | EP-4: `GET /v5/resources` | `challenge-provider.test.ts`: registrant count | ✅ Covered |
+| R-10 | Forum/discussions view | C | `forum-provider.ts` | WF6 | EP-5: `GET /v5/challenge-discussions` | Manual: post rendering, pagination | ✅ Covered |
+| R-11 | Submission history | A | `webview-manager.ts` | WF2 | EP-6: `GET /v5/submissions` | `api-client.test.ts`: submission list | ✅ Covered |
+| R-12 | Inline requirement checker + diagnostics | B | `requirement-checker.ts` | WF4 | Workspace scan (no API) | `requirement-checker.test.ts`: keyword match, diagnostics | ✅ Covered |
+| R-13 | Auth via OAuth2 / JWT | A | `auth.ts` | — | EP-8: `POST /oauth/token` | `auth.test.ts`: token decode, expiry | ✅ Covered |
+| R-14 | Secure token storage | A | `auth.ts` | — | — | `auth.test.ts`: SecretStorage mock | ✅ Covered |
+| R-15 | Polling for live updates | C | `forum-provider.ts` | WF6 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
+| R-16 | User profile display | A | `challenge-provider.ts` | WF1 (footer) | EP-7: `GET /v5/members/{handle}` | Manual: login display | ✅ Covered |
+| R-17 | No new API endpoints | — | All modules | — | Verified in EP-1–EP-8 | API appendix audit | ✅ Covered |
+| R-18 | Edge states (loading/empty/error/expired) | A/B/C | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
+| R-19 | Multiple ideas / modular tiers | — | N/A (design) | extras.md | — | Content review | ✅ Covered |
+
+---
+
+## 12. Quality Gates
+
+> **Purpose:** Concrete, measurable criteria that must pass before each milestone. No code merges without satisfying the applicable gate.
+
+### Gate 1: Pre-Commit (Developer Workstation)
+
+| Check | Tool | Threshold | Blocking |
+|-------|------|-----------|----------|
+| TypeScript compilation | `tsc --noEmit` | Zero errors | Yes |
+| ESLint | `eslint src/ --ext .ts` | Zero errors, zero warnings | Yes |
+| No `any` types | `@typescript-eslint/no-explicit-any: error` | Zero violations | Yes |
+| Unit test pass | `jest --ci` | 100% pass rate | Yes |
+| Unit test coverage (overall) | `jest --coverage` | ≥ 80% lines | Yes |
+
+### Gate 2: Module-Level Coverage Targets
+
+| Module | Minimum Line Coverage | Rationale |
+|--------|----------------------|-----------|
+| `api-client.ts` | ≥ 90% | Critical path; caching + retry logic must be fully tested |
+| `auth.ts` | ≥ 90% | Security-sensitive; token handling must be airtight |
+| `challenge-provider.ts` | ≥ 85% | Core UI data source; tree node generation must be reliable |
+| `requirement-checker.ts` | ≥ 80% | Keyword matching has edge cases; good coverage prevents false positives |
+| `config.ts` | ≥ 95% | Simple module; easy to achieve full coverage |
+| `webview-manager.ts` | ≥ 60% | Webview creation is hard to unit test; rely on integration tests |
+| `forum-provider.ts` | ≥ 60% | Similar to webview; integration tests supplement |
+| `status-bar.ts` | ≥ 75% | Timer logic needs coverage; UI rendering tested manually |
+
+### Gate 3: Pre-Release (CI Pipeline)
+
+| Check | Tool | Threshold | Blocking |
+|-------|------|-----------|----------|
+| Build succeeds | `npm run compile` | Exit code 0 | Yes |
+| All tests pass | `npm test` | 100% pass, ≥ 80% coverage | Yes |
+| Integration tests | `@vscode/test-electron` | All 5 integration tests pass | Yes |
+| Bundle size | `vsce package --out /dev/null` | `.vsix` ≤ 2 MB | Warning (non-blocking) |
+| No `console.log` | ESLint `no-console: error` | Zero violations | Yes |
+| Dependency audit | `npm audit --production` | Zero high/critical vulnerabilities | Yes |
+| Manual E2E checklist | Human tester | All 11 checklist items pass (§7) | Yes |
+
+### Gate 4: Post-Release Monitoring
+
+| Metric | Source | Alert Threshold |
+|--------|--------|----------------|
+| Extension crash rate | VS Code telemetry (opt-in) | > 1% of activations |
+| API error rate (429s) | Extension output channel logs | > 5 rate-limited requests/hour |
+| Unhandled rejections | `process.on('unhandledRejection')` log | Any occurrence |
+| User-reported issues | GitHub Issues | Triage within 48h |
+
+### Release & Rollback Plan
+
+| Phase | Action |
+|-------|--------|
+| **Versioning** | Semantic versioning (`MAJOR.MINOR.PATCH`). Pre-release: `0.x.y`. |
+| **Release channel** | GitHub Releases + VS Code Marketplace (`vsce publish`). |
+| **Rollback trigger** | Crash rate > 1% OR critical security issue OR data loss. |
+| **Rollback procedure** | `vsce unpublish` current version → re-publish previous `.vsix` from GitHub Releases. Users auto-update on next VS Code restart. |
+| **Issue triage** | Critical (security/crash) → hotfix within 24h. High (feature broken) → patch within 72h. Medium/Low → next minor release. |
