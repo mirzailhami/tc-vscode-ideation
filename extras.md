@@ -106,19 +106,8 @@ Users working on multiple challenges simultaneously need a higher-level overview
 A webview-based dashboard showing all active challenges in a card grid layout with visual progress indicators.
 
 ### Card Layout
-```
-┌──────────────────────────┐  ┌──────────────────────────┐
-│ API Microservice         │  │ Frontend Challenge       │
-│ ─────────────────        │  │ ─────────────────        │
-│ Prize: $1,500            │  │ Prize: $800              │
-│ Phase: Submission        │  │ Phase: Registration      │
-│ Deadline: 4h 12m ⚠️      │  │ Deadline: 2d 8h          │
-│ Reqs: ████░░ 62% (5/8)  │  │ Reqs: ░░░░░░ 0%         │
-│ Forum: 12 posts (2 new) │  │ Forum: 3 posts           │
-│ Tags: Node.js, PG       │  │ Tags: React, TypeScript  │
-│ [Open Spec] [Forum]     │  │ [Open Spec] [Forum]      │
-└──────────────────────────┘  └──────────────────────────┘
-```
+
+> **Visual wireframe:** [`wireframes/extras-dashboard.excalidraw`](wireframes/extras-dashboard.excalidraw)
 
 ### Implementation
 - Webview panel using CSS Grid for responsive card layout.
@@ -153,18 +142,7 @@ Pre-configured keyboard shortcuts and a custom Quick Pick navigation menu.
 ### Quick Pick Navigation
 Command: "Topcoder: Quick Navigate" (`Ctrl+Shift+T T`):
 
-```
-┌────────────────────────────────────────────┐
-│ > Topcoder: Quick Navigate                  │
-│ ──────────────────────────────────────────  │
-│ $(book)   Open Spec — API Microservice     │
-│ $(comment) Open Forum — 2 new posts        │
-│ $(clock)  Timeline — 4h 12m remaining      │
-│ $(checklist) Requirements — 5/8 done       │
-│ $(cloud-upload) Submissions — 2 submitted   │
-│ $(gear)   Settings                          │
-└────────────────────────────────────────────┘
-```
+> **Visual wireframe:** [`wireframes/extras-quick-pick.excalidraw`](wireframes/extras-quick-pick.excalidraw)
 
 ### Implementation
 - `contributes.keybindings` in `package.json` with `when` context conditions.
