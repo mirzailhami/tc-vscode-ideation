@@ -332,7 +332,7 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | `numOfSubmissions` | Submissions child node count | WF1: Explorer |
 | `tags[]` | Tag pills on dashboard card | Extras: Dashboard |
 | `overview.totalPrizes` | Prize display ("$800") | WF2: Spec, Dashboard |
-| `phases[]` | Timeline segments | WF3: Status bar, WF6: Timeline |
+| `phases[]` | Timeline segments | WF3: Status bar, WF4: Timeline |
 | `currentPhaseNames[0]` | Status bar phase label | WF3: Status bar |
 
 ---
@@ -414,12 +414,12 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
 | `description` | Rendered markdown body | WF2: Spec webview |
-| `phases[].name` | Phase segment label | WF6: Timeline bar |
-| `phases[].isOpen` | Phase color coding (green/yellow/gray) | WF6: Timeline |
+| `phases[].name` | Phase segment label | WF4: Timeline bar |
+| `phases[].isOpen` | Phase color coding (green/yellow/gray) | WF4: Timeline |
 | `currentPhase.scheduledEndDate` | Countdown timer source | WF3: Status bar |
 | `overview.totalPrizes` | Prize display in spec header | WF2: Spec toolbar |
 | `tags[]` | Tech tags in spec header | WF2: Spec toolbar |
-| `discussions[].url` | Forum link (Vanilla provider) | WF6: Forum |
+| `discussions[].url` | Forum link (Vanilla provider) | WF4: Forum |
 | `skills[]` | Skill tags | Dashboard |
 
 ---
@@ -507,7 +507,7 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
 | `memberHandle` | Registrant list / user verification | WF1: Registrants node |
-| `roleId` | Role badge (Copilot / Submitter) | WF6: Forum post role |
+| `roleId` | Role badge (Copilot / Submitter) | WF4: Forum post role |
 | `memberId` | Match against logged-in user (registration check) | Internal logic |
 
 ---
@@ -546,8 +546,8 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
-| `discussions[].url` | Forum link / iframe source | WF6: Forum webview |
-| `discussions[].name` | Forum tab label | WF6: Tab header |
+| `discussions[].url` | Forum link / iframe source | WF4: Forum webview |
+| `discussions[].name` | Forum tab label | WF4: Tab header |
 | `discussions[].provider` | Provider routing logic | Internal |
 
 ---
@@ -645,7 +645,7 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
 | `handle` | Login display ("Logged in as: mirzailhami") | WF1: Sidebar footer |
-| `photoURL` | Avatar (if rendered) | WF6: Forum posts |
+| `photoURL` | Avatar (if rendered) | WF4: Forum posts |
 | `userId` | Internal ID for submissions/resource queries | Internal logic |
 | `tracks[]` | Track filter options | Internal logic |
 | `maxRating` | Rating display | Dashboard / profile |

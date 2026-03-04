@@ -10,7 +10,7 @@
       "y": 15,
       "width": 500,
       "height": 25,
-      "text": "WF7: Edge States (Loading / Empty / Error / Token Expired)",
+      "text": "WF5: Edge States (Loading / Empty / Error / Token Expired)",
       "fontSize": 18,
       "fontFamily": 3,
       "textAlign": "left",
@@ -35,7 +35,7 @@
       "version": 1,
       "versionNonce": 700000,
       "containerId": null,
-      "originalText": "WF7: Edge States (Loading / Empty / Error / Token Expired)",
+      "originalText": "WF5: Edge States (Loading / Empty / Error / Token Expired)",
       "autoResize": true,
       "lineHeight": 1.25
     },

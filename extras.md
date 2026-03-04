@@ -61,7 +61,7 @@ Detect spec updates and show a visual diff between the previously cached version
 ### UI
 - Notification badge on the Spec & Requirements tree node: "$(warning) Updated".
 - Standard VS Code side-by-side diff view with additions (green) and deletions (red).
-- Timeline entry in WF6 showing when the spec was modified.
+- Timeline entry in WF4 showing when the spec was modified.
 
 ### Value
 Prevents missed scope changes. Uses native VS Code diff — no custom UI needed. Very low implementation effort (~4-6 hours).

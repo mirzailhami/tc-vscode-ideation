@@ -41,7 +41,7 @@
       "y": 30,
       "width": 380,
       "height": 25,
-      "text": "WF6: Forum & Timeline Sidebar",
+      "text": "WF4: Forum & Timeline Sidebar",
       "fontSize": 16,
       "fontFamily": 3,
       "textAlign": "center",
@@ -61,7 +61,7 @@
       "versionNonce": 1007919,
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "WF6: Forum & Timeline Sidebar",
+      "originalText": "WF4: Forum & Timeline Sidebar",
       "lineHeight": 1.25
     },
     {

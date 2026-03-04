@@ -25,8 +25,8 @@ All features rely exclusively on **existing Topcoder v6 APIs** — no new endpoi
 
 | File | Description | Scoring Area |
 |------|-------------|-------------|
-| [wireframes.md](wireframes.md) | 5 wireframes (WF1–WF3, WF6–WF7) with annotations + end-to-end user flow diagram | 50% — Wireframes |
-| [glossary.md](glossary.md) | 59-entry developer glossary: every UI element, interaction, data concept | 50% — Glossary |
+| [wireframes.md](wireframes.md) | 5 wireframes (WF1–WF5) with annotations + end-to-end user flow diagram | 50% — Wireframes |
+| [glossary.md](glossary.md) | 46-entry developer glossary: every UI element, interaction, data concept | 50% — Glossary |
 | [architecture.md](architecture.md) | Component diagrams, 8-endpoint API table with verified sample payloads, field-to-UI mapping, auth flow, security, performance, error handling | 25% — Architecture + API |
 | [dev-requirements.md](dev-requirements.md) | Prerequisites, dependencies, file structure, package.json, build, testing, risks, requirement traceability matrix, quality gates | 50% — Dev Requirements |
 | [extras.md](extras.md) | 5 bonus enhancement ideas (AI extraction, spec diff, dry-run, dashboard, shortcuts) | 25% — Innovation |

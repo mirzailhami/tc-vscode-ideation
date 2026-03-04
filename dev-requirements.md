@@ -455,8 +455,8 @@ Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included 
 
 | Req ID | Spec Requirement | Tier | Feature Module | Wireframe(s) | API Endpoint(s) | Test Case(s) | Status |
 |--------|-----------------|------|---------------|--------------|-----------------|-------------|--------|
-| R-01 | Wireframes for all key screens | — | N/A (design) | WF1–WF7 | — | Visual review | ✅ Covered |
-| R-02 | Glossary defining UI elements | — | N/A (design) | glossary.md | — | Content review (59 entries) | ✅ Covered |
+| R-01 | Wireframes for all key screens | — | N/A (design) | WF1–WF5 | — | Visual review | ✅ Covered |
+| R-02 | Glossary defining UI elements | — | N/A (design) | glossary.md | — | Content review (46 entries) | ✅ Covered |
 | R-03 | Architecture with existing API usage | — | `architecture.md` | — | EP-1 through EP-8 | API appendix verification | ✅ Covered |
 | R-04 | Browse active challenges in sidebar | A | `challenge-provider.ts` | WF1 | EP-1: `GET /v6/challenges` | `challenge-provider.test.ts`: tree node labels, icons, children | ✅ Covered |
 | R-05 | Render challenge spec as markdown | A | `webview-manager.ts` | WF2 | EP-2: `GET /v6/challenges/{id}` | `api-client.test.ts`: detail fetch; manual: webview renders | ✅ Covered |
@@ -464,14 +464,14 @@ Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included 
 | R-07 | Status bar countdown timer | A | `status-bar.ts` | WF3 | EP-2 (phases field) | Manual: color coding at thresholds | ✅ Covered |
 | R-08 | Download/view attachments | A | `webview-manager.ts` | WF2 | EP-3: `GET /v6/challenges/{id}/attachments` | `api-client.test.ts`: attachment list; manual: download | ✅ Covered |
 | R-09 | Show registrants | A | `challenge-provider.ts` | WF1 | EP-4: `GET /v6/resources` | `challenge-provider.test.ts`: registrant count | ✅ Covered |
-| R-10 | Forum/discussions view | B | `forum-provider.ts` | WF6 | EP-5: `discussions[]` from challenge object | Manual: forum rendering | ✅ Covered |
+| R-10 | Forum/discussions view | B | `forum-provider.ts` | WF4 | EP-5: `discussions[]` from challenge object | Manual: forum rendering | ✅ Covered |
 | R-11 | Submission history | A | `webview-manager.ts` | WF2 | EP-6: `GET /v6/submissions` | `api-client.test.ts`: submission list | ✅ Covered |
 | R-13 | Auth via OAuth2 / JWT | A | `auth.ts` | — | EP-8: `POST /oauth/token` | `auth.test.ts`: token decode, expiry | ✅ Covered |
 | R-14 | Secure token storage | A | `auth.ts` | — | — | `auth.test.ts`: SecretStorage mock | ✅ Covered |
-| R-15 | Polling for live updates | B | `forum-provider.ts` | WF6 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
+| R-15 | Polling for live updates | B | `forum-provider.ts` | WF4 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
 | R-16 | User profile display | A | `challenge-provider.ts` | WF1 (footer) | EP-7: `GET /v6/members?handle={h}` | Manual: login display | ✅ Covered |
 | R-17 | No new API endpoints | — | All modules | — | Verified in EP-1–EP-8 | API appendix audit | ✅ Covered |
-| R-18 | Edge states (loading/empty/error/expired) | A/B | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
+| R-18 | Edge states (loading/empty/error/expired) | A/B | All providers | WF5 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
 | R-19 | Multiple ideas / modular tiers | — | N/A (design) | extras.md | — | Content review | ✅ Covered |
 
 ---

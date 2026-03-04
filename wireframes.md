@@ -10,8 +10,8 @@
 | WF1 | Activity Bar & Challenge Explorer | [`wireframes/WF1-challenge-explorer.excalidraw`](wireframes/WF1-challenge-explorer.excalidraw) |
 | WF2 | Spec & Requirements Webview | [`wireframes/WF2-spec-webview.excalidraw`](wireframes/WF2-spec-webview.excalidraw) |
 | WF3 | Status Bar Countdown | [`wireframes/WF3-status-bar.excalidraw`](wireframes/WF3-status-bar.excalidraw) |
-| WF6 | Forum & Timeline Sidebar | [`wireframes/WF6-forum-timeline.excalidraw`](wireframes/WF6-forum-timeline.excalidraw) |
-| WF7 | Edge States (Loading / Empty / Error / Token Expired) | [`wireframes/WF7-edge-states.excalidraw`](wireframes/WF7-edge-states.excalidraw) |
+| WF4 | Forum & Timeline Sidebar | [`wireframes/WF4-forum-timeline.excalidraw`](wireframes/WF4-forum-timeline.excalidraw) |
+| WF5 | Edge States (Loading / Empty / Error / Token Expired) | [`wireframes/WF5-edge-states.excalidraw`](wireframes/WF5-edge-states.excalidraw) |
 
 ---
 
@@ -24,7 +24,7 @@ flowchart TD
     START([VS Code Starts]) --> ACTIVATE[Extension Activates<br/>onStartupFinished]
     ACTIVATE --> HAS_TOKEN{JWT in<br/>SecretStorage?}
 
-    HAS_TOKEN -- No --> LOGIN_PROMPT[WF7-D: Token Expired<br/>Show Log In button]
+    HAS_TOKEN -- No --> LOGIN_PROMPT[WF5-D: Token Expired<br/>Show Log In button]
     LOGIN_PROMPT --> LOGIN[Topcoder: Login Command<br/>Opens browser OAuth]
     LOGIN --> TOKEN_OK[JWT stored in SecretStorage]
 
@@ -32,10 +32,10 @@ flowchart TD
     TOKEN_CHECK -- Yes --> LOGIN_PROMPT
     TOKEN_CHECK -- No --> TOKEN_OK
 
-    TOKEN_OK --> FETCH_LIST[GET /v6/challenges<br/>WF7-A: Loading state]
-    FETCH_LIST -- Network Error --> ERROR_STATE[WF7-C: API Error<br/>Retry button]
+    TOKEN_OK --> FETCH_LIST[GET /v6/challenges<br/>WF5-A: Loading state]
+    FETCH_LIST -- Network Error --> ERROR_STATE[WF5-C: API Error<br/>Retry button]
     ERROR_STATE --> FETCH_LIST
-    FETCH_LIST -- Empty Array --> EMPTY_STATE[WF7-B: Empty State<br/>Browse Challenges button]
+    FETCH_LIST -- Empty Array --> EMPTY_STATE[WF5-B: Empty State<br/>Browse Challenges button]
     FETCH_LIST -- Success --> TREE[WF1: Challenge Explorer<br/>Tree populated]
 
     TREE --> SELECT[User clicks challenge]
@@ -44,14 +44,14 @@ flowchart TD
 
     SELECT --> SPEC_CLICK[Click: Spec and Requirements]
     SPEC_CLICK --> SPEC_LOAD{Spec loads?}
-    SPEC_LOAD -- Error --> SPEC_ERR[WF7-E: Webview Error<br/>Retry / Open in Browser]
+    SPEC_LOAD -- Error --> SPEC_ERR[WF5-E: Webview Error<br/>Retry / Open in Browser]
     SPEC_ERR --> SPEC_CLICK
     SPEC_LOAD -- Success --> SPEC[WF2: Spec Webview<br/>Rendered spec + checklist]
 
     SELECT --> DISCUSS_CLICK[Click: Discussions]
     DISCUSS_CLICK --> FORUM_AVAIL{Forum API OK?}
-    FORUM_AVAIL -- Error --> FORUM_NA[WF7-F: Unavailable<br/>Grayed out node]
-    FORUM_AVAIL -- Success --> FORUM[WF6: Forum Webview<br/>Posts + Timeline]
+    FORUM_AVAIL -- Error --> FORUM_NA[WF5-F: Unavailable<br/>Grayed out node]
+    FORUM_AVAIL -- Success --> FORUM[WF4: Forum Webview<br/>Posts + Timeline]
 
     SELECT --> SUB_CLICK[Click: Submissions]
     SUB_CLICK --> SUB_VIEW[Submission History<br/>from GET /v6/submissions]
@@ -195,13 +195,13 @@ Persistent status bar items showing phase countdown and requirements progress. A
 - **Countdown Timer:** `StatusBarItem` with `alignment: StatusBarAlignment.Left` and `priority: 100`. Text updates every 60 seconds via `setInterval` (cleared on dispose). Time remaining calculated from the current phase's `scheduledEndDate` from `GET /v6/challenges/{id}` response.
 - **Color Coding:** `backgroundColor` uses `ThemeColor` — `statusBarItem.warningBackground` for yellow (4–24h), `statusBarItem.errorBackground` for red (<4h), default for green (>24h).
 - **Tooltip:** Multi-line tooltip string listing all phases with status icons. Built from the `phases[]` array in the challenge detail response.
-- **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF6, Tier B) or scrolls to the timeline section in the spec webview.
+- **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF4, Tier B) or scrolls to the timeline section in the spec webview.
 - **Requirements Counter:** Separate `StatusBarItem` at `StatusBarAlignment.Right`. Shows `checked/total` from `workspaceState`. Click opens the requirements section in the Spec Webview (WF2).
 - **Lifecycle:** Both items created in `activate()`, stored in `ExtensionContext.subscriptions` for automatic disposal.
 
 ---
 
-## WF6: Forum & Timeline Sidebar (Tier B)
+## WF4: Forum & Timeline Sidebar (Tier B)
 
 A split webview panel combining threaded forum posts and a visual timeline bar for challenge phases.
 
@@ -275,5 +275,5 @@ A split webview panel combining threaded forum posts and a visual timeline bar f
 | WF1: Challenge Explorer | A | `TreeDataProvider`, `StatusBarItem` | `GET /v6/challenges` |
 | WF2: Spec Webview | A | `WebviewPanel`, `env.clipboard` | `GET /v6/challenges/{id}` |
 | WF3: Status Bar | A | `StatusBarItem`, `ThemeColor` | `GET /v6/challenges/{id}` (phases) |
-| WF6: Forum & Timeline | B | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
-| WF7: Edge States | A/B | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |
+| WF4: Forum & Timeline | B | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
+| WF5: Edge States | A/B | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |
