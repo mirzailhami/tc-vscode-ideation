@@ -26,17 +26,17 @@ This wireframe shows the primary entry point — a new "Topcoder" icon in the Ac
 │  ┌──────┐              │                                           │
 │  │ 📁   │ Explorer     │  MY ACTIVE CHALLENGES          [$(refresh)]│
 │  │ 🔍   │ Search       │  ─────────────────────────────────────────│
-│  │ 🔀   │ Source Ctrl  │  ▶ $(trophy) Design Challenge    [Active] │
-│  │ 🐛   │ Run/Debug    │  ▼ $(trophy) API Microservice    [Active] │
-│  │ 🧩   │ Extensions   │  │  ├── $(book)    Spec Preview           │
-│  │      │              │  │  ├── $(checklist) Requirements (5/8)   │
-│  │ ┌──┐ │              │  │  ├── $(file)   Attachments (3)         │
-│  │ │TC│ │ ◀ TOPCODER   │  │  ├── $(comment) Forum Posts (12)      │
+│  │ 🔀   │ Source Ctrl  │  ▶ $(trophy) TC VSCode Plugin     [Active]│
+│  │ 🐛   │ Run/Debug    │  ▼ $(trophy) RFP Proposal BE     [Active]│
+│  │ 🧩   │ Extensions   │  │  ├── $(book)    Spec & Requirements    │
+│  │      │              │  │  ├── $(comment) Discussions (12)       │
+│  │ ┌──┐ │              │  │  ├── $(cloud-upload) Submissions       │
+│  │ │TC│ │ ◀ TOPCODER   │  │  ├── $(person)  Registrants (24)      │
 │  │ └──┘ │   (active)   │  │  └── $(clock)  Timeline                │
-│  │      │              │  ▶ $(trophy) Frontend Challenge [Upcoming]│
+│  │      │              │  ▶ $(trophy) RFP Proposal UI   [Upcoming]│
 │  └──────┘              │                                           │
 │                        │  ─────────────────────────────────────────│
-│                        │  $(info) Logged in as: mirza_ilhami       │
+│                        │  $(info) Logged in as: mirzailhami       │
 ├────────────────────────┴───────────────────────────────────────────┤
 │  STATUS BAR                                                        │
 │  $(clock) TC: Submission ends in 4h 12m  │  $(check) 5/8 reqs     │
@@ -46,7 +46,7 @@ This wireframe shows the primary entry point — a new "Topcoder" icon in the Ac
 ### Annotations
 - **Activity Bar Icon ("TC"):** Custom Topcoder icon registered via `viewsContainers.activitybar` in `package.json`. Activates the Topcoder sidebar on click.
 - **Tree Nodes:** Each challenge is a collapsible `TreeItem` with `label` = challenge name and `description` = status badge (`Active`, `Upcoming`). Status badge uses `TreeItemLabel` with highlight color.
-- **Child Nodes:** Five fixed children per challenge: Spec Preview, Requirements, Attachments, Forum Posts, Timeline. Each has a contextual icon (`$(book)`, `$(checklist)`, etc.) and shows a count where applicable.
+- **Child Nodes:** Five fixed children per challenge: Spec & Requirements, Discussions, Submissions, Registrants, Timeline. Each has a contextual icon (`$(book)`, `$(comment)`, `$(cloud-upload)`, `$(person)`, `$(clock)`) and shows a count where applicable.
 - **Refresh Button:** Inline toolbar action on the tree view header. Triggers `GET /v6/challenges` re-fetch.
 - **Login Info:** Footer section in sidebar showing current handle, sourced from the decoded JWT stored in `SecretStorage`.
 - **Status Bar Items:** Two items — countdown timer (left-aligned, priority 100) and requirements progress (right-aligned, priority 50). Both are `StatusBarItem` instances disposed on deactivation.
@@ -55,7 +55,7 @@ This wireframe shows the primary entry point — a new "Topcoder" icon in the Ac
 
 ## WF2: Spec & Requirements Webview Panel (Tier A)
 
-Opens when the user clicks "Spec Preview" in the tree. A full-width editor-tab webview rendering the challenge specification with interactive requirements.
+Opens when the user clicks "Spec & Requirements" in the tree. A full-width editor-tab webview rendering the challenge specification with interactive requirements.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐

@@ -400,7 +400,7 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 - [ ] "Topcoder: Login" → browser opens, token stored
 - [ ] Sidebar shows "My Active Challenges" with real data
 - [ ] Click challenge → children appear (Spec, Requirements, etc.)
-- [ ] Click "Spec Preview" → webview opens with formatted spec
+- [ ] Click "Spec & Requirements" → webview opens with formatted spec
 - [ ] Checkbox toggle persists across VS Code restart
 - [ ] Status bar shows countdown, color changes at thresholds
 - [ ] "Topcoder: Check Requirements" → Problems panel shows warnings

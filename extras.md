@@ -59,7 +59,7 @@ Detect spec updates and show a visual diff between the previously cached version
 4. Register a `TextDocumentContentProvider` for the `topcoder-cache` scheme that returns the old/new markdown text.
 
 ### UI
-- Notification badge on the Spec Preview tree node: "$(warning) Updated".
+- Notification badge on the Spec & Requirements tree node: "$(warning) Updated".
 - Standard VS Code side-by-side diff view with additions (green) and deletions (red).
 - Timeline entry in WF6 showing when the spec was modified.
 
