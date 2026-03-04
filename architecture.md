@@ -1,6 +1,6 @@
 # Architecture — Topcoder VSCode Plugin
 
-> **Scope:** Read-only VS Code extension fetching Topcoder challenge data via existing public v5/v6 APIs. No new endpoints proposed. No write/submit operations (view-only).
+> **Scope:** Read-only VS Code extension fetching Topcoder challenge data via existing public v6 APIs. No new endpoints proposed. No write/submit operations (view-only).
 
 ---
 
@@ -9,15 +9,15 @@
 ```mermaid
 graph TD
     A[VS Code Extension Activation] --> B[Auth: Login Command → SecretStorage JWT]
-    B --> C[Tree Provider: GET /v5/challenges -> My Challenges]
-    C --> D[On Select: GET /v5/challenges/id]
+    B --> C[Tree Provider: GET /v6/challenges -> My Challenges]
+    C --> D[On Select: GET /v6/challenges/id]
     D --> E[Webview: Render spec markdown + checklist]
-    D --> F[Attachments: GET /v5/challenges/id/attachments → Download/Open]
+    D --> F[Attachments: GET /v6/challenges/id/attachments → Download/Open]
     D --> G[Status Bar: Countdown from phases]
     E --> H[Polling: 60–300s → refresh timeline/forum]
     I[Commands] --> J[Check Requirements → keyword match code vs spec]
     J --> K[DiagnosticCollection: uncovered warnings]
-    H --> L[Forum: GET /v5/challenge-discussions]
+    H --> L[Forum: discussions[] from challenge object]
 ```
 
 ---
@@ -88,13 +88,13 @@ All endpoints are existing public Topcoder APIs. **No new endpoints required.**
 
 | # | Purpose | Method | Endpoint | Query Params | Auth | Response Fields Used | Caching |
 |---|---------|--------|----------|-------------|------|---------------------|---------|
-| 1 | **List active challenges** | `GET` | `/v5/challenges` | `status=Active`, `memberHandle={handle}`, `sortBy=updated`, `sortOrder=desc`, `perPage=50` | `Bearer {JWT}` | `id`, `name`, `status`, `numOfRegistrants`, `numOfSubmissions`, `tags[]`, `prizeSets[]` | `globalState`, TTL: 5 min |
-| 2 | **Get challenge details** | `GET` | `/v5/challenges/{challengeId}` | — | `Bearer {JWT}` | `id`, `name`, `description` (markdown spec), `status`, `phases[]`, `prizeSets[]`, `tags[]`, `legacy.track`, `metadata` | `globalState`, TTL: 5 min |
-| 3 | **List attachments** | `GET` | `/v5/challenges/{challengeId}/attachments` | — | `Bearer {JWT}` | `id`, `name`, `url`, `fileType`, `size` | `globalState`, TTL: 10 min |
-| 4 | **List resources (roles)** | `GET` | `/v5/resources` | `challengeId={id}` | `Bearer {JWT}` | `memberId`, `memberHandle`, `roleId` (to verify registration) | `globalState`, TTL: 10 min |
-| 5 | **Get forum discussions** | `GET` | `/v5/challenge-discussions` | `challengeId={id}`, `perPage=20`, `page=1`, `sortBy=createdAt`, `sortOrder=desc` | `Bearer {JWT}` | `id`, `challengeId`, `body`, `authorHandle`, `authorRole`, `createdAt` | `globalState`, TTL: 60s |
-| 6 | **Get submission history** | `GET` | `/v5/submissions` | `challengeId={id}`, `memberId={userId}`, `perPage=10` | `Bearer {JWT}` | `id`, `type`, `url`, `createdAt`, `status` | `globalState`, TTL: 5 min |
-| 7 | **Get member profile** | `GET` | `/v5/members/{handle}` | — | `Bearer {JWT}` | `handle`, `photoURL`, `skills[]` (for login info display) | `globalState`, TTL: 30 min |
+| 1 | **List active challenges** | `GET` | `/v6/challenges` | `status=Active`, `memberHandle={handle}`, `sortBy=updated`, `sortOrder=desc`, `perPage=50` | `Bearer {JWT}` | `id`, `name`, `status`, `numOfRegistrants`, `numOfSubmissions`, `tags[]`, `prizeSets[]` | `globalState`, TTL: 5 min |
+| 2 | **Get challenge details** | `GET` | `/v6/challenges/{challengeId}` | — | `Bearer {JWT}` | `id`, `name`, `description` (markdown spec), `status`, `phases[]`, `prizeSets[]`, `tags[]`, `track`, `discussions[]`, `overview` | `globalState`, TTL: 5 min |
+| 3 | **List attachments** | `GET` | `/v6/challenges/{challengeId}/attachments` | — | `Bearer {JWT}` | `id`, `name`, `url`, `fileType`, `size` | `globalState`, TTL: 10 min |
+| 4 | **List resources (roles)** | `GET` | `/v6/resources` | `challengeId={id}` | `Bearer {JWT}` | `memberId`, `memberHandle`, `roleId` (to verify registration) | `globalState`, TTL: 10 min |
+| 5 | **Get forum discussions** | — | Embedded in `/v6/challenges/{id}` → `discussions[]` | — | — | `discussions[].url` (Vanilla forum link), `discussions[].provider` | Cached with challenge detail |
+| 6 | **Get submission history** | `GET` | `/v6/submissions` | `challengeId={id}`, `memberId={userId}`, `perPage=10` | `Bearer {JWT}` | `id`, `type`, `url`, `createdAt`, `status` | `globalState`, TTL: 5 min |
+| 7 | **Get member profile** | `GET` | `/v6/members?handle={handle}` | `handle={handle}` | `Bearer {JWT}` | `handle`, `photoURL`, `userId`, `tracks[]`, `skills[]` | `globalState`, TTL: 30 min |
 | 8 | **Authenticate (token)** | `POST` | `https://accounts-auth0.topcoder.com/oauth/token` | Body: `grant_type`, `client_id`, `scope`, `audience` (or device code flow params) | None (generates token) | `access_token`, `id_token`, `expires_in`, `token_type` | `SecretStorage` (persistent) |
 
 ### Base URLs
@@ -126,7 +126,7 @@ sequenceDiagram
     VSCode->>Auth0: POST /oauth/token exchange code
     Auth0->>VSCode: access_token + id_token + expires_in
     VSCode->>VSCode: Store JWT in SecretStorage
-    VSCode->>API: GET /v5/challenges with Bearer token
+    VSCode->>API: GET /v6/challenges with Bearer token
     API->>VSCode: Challenge list JSON
     VSCode->>User: Tree view populated
 ```
@@ -250,14 +250,14 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | User Action | Extension Host | API Call | UI Update |
 |------------|---------------|----------|-----------|
 | Login | `AuthService.login()` | `POST auth0/oauth/token` | Tree: show challenges |
-| Select challenge | `ApiClient.getDetail()` | `GET /v5/challenges/{id}` | Status bar, expand tree |
+| Select challenge | `ApiClient.getDetail()` | `GET /v6/challenges/{id}` | Status bar, expand tree |
 | Open spec | `WebviewManager.show()` | (cached from above) | Webview: rendered spec |
 | Toggle checkbox | `workspaceState.update()` | (none — local only) | Counter: 6/8 |
-| Download attachment | `env.openExternal()` | `GET /v5/.../attachments` | Browser opens download |
-| Refresh | `ApiClient.getList()` | `GET /v5/challenges` | Tree: updated list |
+| Download attachment | `env.openExternal()` | `GET /v6/.../attachments` | Browser opens download |
+| Refresh | `ApiClient.getList()` | `GET /v6/challenges` | Tree: updated list |
 | Check requirements | `RequirementChecker` | (none — workspace scan) | Diagnostics, decorations |
-| View forum | `ForumProvider.show()` | `GET /v5/challenge-discussions` | Webview: post cards |
-| Auto-poll tick | `ForumProvider.poll()` | `GET /v5/challenge-discussions` | Badge count, new posts |
+| View forum | `ForumProvider.show()` | `GET /v6/challenges/{id}` → `discussions[]` | Webview: forum link |
+| Auto-poll tick | `ForumProvider.poll()` | `GET /v6/challenges/{id}` → `discussions[]` | Badge count, new posts |
 
 ---
 
@@ -269,7 +269,7 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 
 | Environment | API Base | Auth Base | Source |
 |-------------|----------|-----------|--------|
-| Production | `https://api.topcoder.com` | `https://accounts-auth0.topcoder.com` | [Topcoder API Docs](https://topcoder-platform.github.io/tc-api-docs/) |
+| Production | `https://api.topcoder.com` | `https://accounts-auth0.topcoder.com` | [challenge-api-v6 repo](https://github.com/topcoder-platform/challenge-api-v6) |
 | Development | `https://api.topcoder-dev.com` | `https://accounts-auth0.topcoder-dev.com` | — |
 
 ---
@@ -279,47 +279,50 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/challenges` |
+| **URL** | `{baseUrl}/v6/challenges` |
 | **Auth** | `Authorization: Bearer {JWT}` |
 | **Query Params** | `status=Active`, `memberHandle={handle}`, `sortBy=updated`, `sortOrder=desc`, `perPage=50` |
-| **Source** | [challenges-api v5](https://github.com/topcoder-platform/challenge-api) |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) — [Postman collection](https://github.com/topcoder-platform/challenge-api-v6/blob/develop/docs/topcoder-challenge-api.postman_collection.json) |
 
 <details>
-<summary>Sample Response (truncated)</summary>
+<summary>Sample Response (truncated — from live GET /v6/challenges)</summary>
 
 ```json
 [
   {
     "id": "a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9",
-    "name": "TC VSCode Plugin Ideation",
-    "status": "Active",
-    "track": "First2Finish",
-    "type": "First2Finish",
+    "name": "Topcoder VSCode Challenge Plugin Ideation and Technical Design",
+    "status": "ACTIVE",
+    "track": { "id": "9b6fc876-f4d9-4ccb-9dfd-419247571f56", "name": "Development", "track": "Development" },
+    "type": { "id": "dc876fa4-ef2d-4eee-b701-b9a97e8a9c1e", "name": "First2Finish", "isTask": false },
     "numOfRegistrants": 24,
     "numOfSubmissions": 3,
     "tags": ["TypeScript", "VS Code"],
     "prizeSets": [
       {
-        "type": "placement",
+        "type": "PLACEMENT",
         "prizes": [{ "value": 800, "type": "USD" }]
       }
     ],
     "phases": [
       {
         "name": "Registration",
-        "phaseStatus": "Closed",
-        "scheduledStartDate": "2026-02-28T00:00:00Z",
-        "scheduledEndDate": "2026-03-02T00:00:00Z"
+        "isOpen": false,
+        "scheduledStartDate": "2025-06-02T16:00:00.000Z",
+        "scheduledEndDate": "2025-07-02T16:00:00.000Z",
+        "duration": 2592000000
       },
       {
         "name": "Submission",
-        "phaseStatus": "Open",
-        "scheduledStartDate": "2026-03-02T00:00:00Z",
-        "scheduledEndDate": "2026-03-06T14:00:00Z"
+        "isOpen": true,
+        "scheduledStartDate": "2025-06-02T16:00:00.000Z",
+        "scheduledEndDate": "2025-07-02T16:00:00.000Z",
+        "duration": 2592000000
       }
     ],
-    "currentPhaseNames": ["Submission"],
-    "updated": "2026-03-04T08:32:00Z"
+    "currentPhaseNames": ["Registration", "Submission"],
+    "overview": { "totalPrizes": 800 },
+    "updated": "2025-06-02T16:01:30.000Z"
   }
 ]
 ```
@@ -330,11 +333,11 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
 | `name` | Tree node label | WF1: Explorer |
-| `status` | Badge text (`Active` / `Upcoming`) | WF1: Explorer |
+| `status` | Badge text (`ACTIVE` / `DRAFT`) | WF1: Explorer |
 | `numOfRegistrants` | Registrants child node count | WF1: Explorer |
 | `numOfSubmissions` | Submissions child node count | WF1: Explorer |
 | `tags[]` | Tag pills on dashboard card | Extras: Dashboard |
-| `prizeSets[0].prizes[0].value` | Prize display ("$800") | WF2: Spec, Dashboard |
+| `overview.totalPrizes` | Prize display ("$800") | WF2: Spec, Dashboard |
 | `phases[]` | Timeline segments | WF3: Status bar, WF6: Timeline |
 | `currentPhaseNames[0]` | Status bar phase label | WF3: Status bar |
 
@@ -345,50 +348,69 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/challenges/{challengeId}` |
+| **URL** | `{baseUrl}/v6/challenges/{challengeId}` |
 | **Auth** | `Authorization: Bearer {JWT}` |
 | **Query Params** | — |
-| **Source** | [challenges-api v5](https://github.com/topcoder-platform/challenge-api) |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) — [Postman collection](https://github.com/topcoder-platform/challenge-api-v6/blob/develop/docs/topcoder-challenge-api.postman_collection.json) |
 
 <details>
-<summary>Sample Response (truncated)</summary>
+<summary>Sample Response (truncated — from live GET /v6/challenges/{id})</summary>
 
 ```json
 {
   "id": "a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9",
-  "name": "TC VSCode Plugin Ideation",
+  "name": "Topcoder VSCode Challenge Plugin Ideation and Technical Design",
   "description": "## Challenge Overview\nDesign a VS Code extension that integrates with Topcoder APIs...\n\n## Requirements\n1. **Wireframes** — provide annotated wireframes for all key screens...\n2. **Glossary** — define all UI elements...",
+  "descriptionFormat": "markdown",
   "privateDescription": null,
-  "status": "Active",
+  "status": "ACTIVE",
+  "track": { "id": "9b6fc876-f4d9-4ccb-9dfd-419247571f56", "name": "Development", "track": "Development" },
+  "type": { "id": "dc876fa4-ef2d-4eee-b701-b9a97e8a9c1e", "name": "First2Finish" },
   "phases": [
     {
-      "id": "phase-001",
       "name": "Registration",
-      "phaseStatus": "Closed",
-      "duration": 345600000,
-      "scheduledStartDate": "2026-02-28T00:00:00Z",
-      "scheduledEndDate": "2026-03-02T00:00:00Z",
-      "actualStartDate": "2026-02-28T00:00:00Z",
-      "actualEndDate": "2026-03-02T00:00:00Z"
+      "isOpen": false,
+      "duration": 2592000000,
+      "scheduledStartDate": "2025-06-02T16:00:00.000Z",
+      "scheduledEndDate": "2025-07-02T16:00:00.000Z",
+      "actualStartDate": "2025-06-02T16:00:00.000Z"
     },
     {
-      "id": "phase-002",
       "name": "Submission",
-      "phaseStatus": "Open",
-      "duration": 345600000,
-      "scheduledStartDate": "2026-03-02T00:00:00Z",
-      "scheduledEndDate": "2026-03-06T14:00:00Z"
+      "isOpen": true,
+      "duration": 2592000000,
+      "scheduledStartDate": "2025-06-02T16:00:00.000Z",
+      "scheduledEndDate": "2025-07-02T16:00:00.000Z"
     }
   ],
+  "currentPhaseNames": ["Registration", "Submission"],
+  "currentPhase": {
+    "name": "Submission",
+    "isOpen": true,
+    "scheduledEndDate": "2025-07-02T16:00:00.000Z"
+  },
   "prizeSets": [
     {
-      "type": "placement",
+      "type": "PLACEMENT",
       "prizes": [{ "value": 800, "type": "USD" }]
     }
   ],
+  "overview": { "totalPrizes": 800 },
   "tags": ["TypeScript", "VS Code"],
-  "metadata": [],
-  "legacy": { "track": "FIRST_2_FINISH" }
+  "skills": [
+    { "id": "96452335-...", "name": "TypeScript" },
+    { "id": "16ee1403-...", "name": "JavaScript" }
+  ],
+  "discussions": [
+    {
+      "id": "disc-001",
+      "name": "General",
+      "type": "challenge",
+      "provider": "vanilla",
+      "url": "https://discussions.topcoder.com/categories/a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9"
+    }
+  ],
+  "metadata": []
 }
 ```
 </details>
@@ -399,10 +421,12 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 |---------------|-----------|------|
 | `description` | Rendered markdown body | WF2: Spec webview |
 | `phases[].name` | Phase segment label | WF6: Timeline bar |
-| `phases[].phaseStatus` | Phase color coding (green/yellow/gray) | WF6: Timeline |
-| `phases[].scheduledEndDate` | Countdown timer source | WF3: Status bar |
-| `prizeSets` | Prize display in spec header | WF2: Spec toolbar |
+| `phases[].isOpen` | Phase color coding (green/yellow/gray) | WF6: Timeline |
+| `currentPhase.scheduledEndDate` | Countdown timer source | WF3: Status bar |
+| `overview.totalPrizes` | Prize display in spec header | WF2: Spec toolbar |
 | `tags[]` | Tech tags in spec header | WF2: Spec toolbar |
+| `discussions[].url` | Forum link (Vanilla provider) | WF6: Forum |
+| `skills[]` | Skill tags | Dashboard |
 
 ---
 
@@ -411,10 +435,10 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/challenges/{challengeId}/attachments` |
+| **URL** | `{baseUrl}/v6/challenges/{challengeId}/attachments` |
 | **Auth** | `Authorization: Bearer {JWT}` |
 | **Query Params** | — |
-| **Source** | [challenges-api v5](https://github.com/topcoder-platform/challenge-api) |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) |
 
 <details>
 <summary>Sample Response</summary>
@@ -454,10 +478,10 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/resources` |
+| **URL** | `{baseUrl}/v6/resources` |
 | **Auth** | `Authorization: Bearer {JWT}` |
 | **Query Params** | `challengeId={id}` |
-| **Source** | [resources-api v5](https://github.com/topcoder-platform/resources-api) |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) |
 
 <details>
 <summary>Sample Response (truncated)</summary>
@@ -496,38 +520,31 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 
 ### EP-5: Get Forum Discussions
 
+> **Note:** Discussions are **embedded** in the challenge object (see EP-2 `discussions[]` array), not served from a separate endpoint. Each entry provides a `url` pointing to the Vanilla Forums provider at `discussions.topcoder.com`. The extension opens this URL in a webview or via `env.openExternal`.
+
 | Field | Value |
 |-------|-------|
-| **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/challenge-discussions` |
-| **Auth** | `Authorization: Bearer {JWT}` |
-| **Query Params** | `challengeId={id}`, `perPage=20`, `page=1`, `sortBy=createdAt`, `sortOrder=desc` |
-| **Source** | [discussions-api v5](https://github.com/topcoder-platform/challenge-api) |
+| **Method** | Embedded in `GET /v6/challenges/{id}` response |
+| **URL** | `{baseUrl}/v6/challenges/{challengeId}` → `discussions[]` array |
+| **Auth** | Same as EP-2 |
+| **Vanilla Forum URL** | `https://discussions.topcoder.com/categories/{challengeId}` |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) |
 
 <details>
-<summary>Sample Response (truncated)</summary>
+<summary>Sample Response (discussions[] from challenge object)</summary>
 
 ```json
-[
-  {
-    "id": "disc-012",
-    "challengeId": "a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9",
-    "body": "Clarification: Rate limiting should be per-IP, not per-user. Please update REQ-4 accordingly.",
-    "authorHandle": "copilot_sarah",
-    "authorRole": "Copilot",
-    "createdAt": "2026-03-04T06:15:00Z",
-    "updatedAt": "2026-03-04T06:15:00Z"
-  },
-  {
-    "id": "disc-011",
-    "challengeId": "a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9",
-    "body": "Q: Should the JWT tokens use RS256 or HS256?",
-    "authorHandle": "dev_mike",
-    "authorRole": "Submitter",
-    "createdAt": "2026-03-04T03:30:00Z",
-    "updatedAt": "2026-03-04T03:30:00Z"
-  }
-]
+{
+  "discussions": [
+    {
+      "id": "disc-001",
+      "name": "General",
+      "type": "challenge",
+      "provider": "vanilla",
+      "url": "https://discussions.topcoder.com/categories/a5ad9e6f-5e08-4261-ac6e-40b3967fa0d9"
+    }
+  ]
+}
 ```
 </details>
 
@@ -535,10 +552,9 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 
 | Response Field | UI Element | View |
 |---------------|-----------|------|
-| `body` | Post content text | WF6: Forum post card |
-| `authorHandle` | Author name display | WF6: Forum post header |
-| `authorRole` | Role badge (Copilot / Member) | WF6: Forum post header |
-| `createdAt` | Relative timestamp ("2h ago") | WF6: Forum post header |
+| `discussions[].url` | Forum link / iframe source | WF6: Forum webview |
+| `discussions[].name` | Forum tab label | WF6: Tab header |
+| `discussions[].provider` | Provider routing logic | Internal |
 
 ---
 
@@ -547,10 +563,10 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/submissions` |
+| **URL** | `{baseUrl}/v6/submissions` |
 | **Auth** | `Authorization: Bearer {JWT}` |
 | **Query Params** | `challengeId={id}`, `memberId={userId}`, `perPage=10` |
-| **Source** | [submissions-api v5](https://github.com/topcoder-platform/submissions-api) |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) |
 
 <details>
 <summary>Sample Response (truncated)</summary>
@@ -597,28 +613,36 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Field | Value |
 |-------|-------|
 | **Method** | `GET` |
-| **URL** | `{baseUrl}/v5/members/{handle}` |
+| **URL** | `{baseUrl}/v6/members?handle={handle}` |
 | **Auth** | `Authorization: Bearer {JWT}` |
-| **Query Params** | — |
-| **Source** | [member-api v5](https://github.com/topcoder-platform/member-api) |
+| **Query Params** | `handle={handle}` |
+| **Source** | [challenge-api-v6](https://github.com/topcoder-platform/challenge-api-v6) — [Postman collection](https://github.com/topcoder-platform/challenge-api-v6/blob/develop/docs/topcoder-challenge-api.postman_collection.json) |
 
 <details>
-<summary>Sample Response (truncated)</summary>
+<summary>Sample Response (truncated — from live GET /v6/members?handle=mirzailhami)</summary>
 
 ```json
-{
-  "userId": 40309246,
-  "handle": "mirzailhami",
-  "firstName": "Mirza",
-  "lastName": "Ilhami",
-  "photoURL": "https://topcoder-dev-media.s3.amazonaws.com/member/profile/mirzailhami.jpg",
-  "competitionCountryCode": "ID",
-  "skills": [
-    { "name": "TypeScript", "score": 95 },
-    { "name": "Node.js", "score": 90 }
-  ],
-  "createdAt": "2020-06-15T00:00:00Z"
-}
+[
+  {
+    "userId": 40862418,
+    "handle": "mirzailhami",
+    "handleLower": "mirzailhami",
+    "firstName": "Mirza",
+    "lastName": "I",
+    "status": "ACTIVE",
+    "photoURL": "https://member-media.topcoder.com/member/profile/mirzailhami-1566580379045.png",
+    "homeCountryCode": "IDN",
+    "competitionCountryCode": "IDN",
+    "tracks": ["DESIGN", "DEVELOP"],
+    "maxRating": { "rating": 1485, "track": "DEVELOP", "subTrack": "CODE" },
+    "skills": [
+      { "id": "96452335-...", "name": "TypeScript", "category": { "name": "Programming and Development" } },
+      { "id": "32899253-...", "name": "Node.js", "category": { "name": "Programming and Development" } }
+    ],
+    "stats": [{ "challenges": 77, "wins": 31 }],
+    "createdAt": 1549080272000
+  }
+]
 ```
 </details>
 
@@ -629,6 +653,8 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | `handle` | Login display ("Logged in as: mirzailhami") | WF1: Sidebar footer |
 | `photoURL` | Avatar (if rendered) | WF6: Forum posts |
 | `userId` | Internal ID for submissions/resource queries | Internal logic |
+| `tracks[]` | Track filter options | Internal logic |
+| `maxRating` | Rating display | Dashboard / profile |
 
 ---
 
@@ -674,7 +700,9 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 |-----------|---------------|---------|
 | Member filter (challenges) | `memberHandle={handle}` | EP-1 |
 | Member filter (submissions) | `memberId={userId}` | EP-6 |
-| Challenge reference | `challengeId={id}` | EP-3, EP-4, EP-5, EP-6 |
-| Pagination | `perPage={n}`, `page={n}` | EP-1, EP-5, EP-6 |
-| Sort | `sortBy={field}`, `sortOrder=desc` | EP-1, EP-5 |
+| Member lookup | `handle={handle}` (query param) | EP-7 |
+| Challenge reference | `challengeId={id}` | EP-2, EP-3, EP-4 |
+| Discussions | Embedded in challenge object (`discussions[]`) | EP-5 (via EP-2) |
+| Pagination | `perPage={n}`, `page={n}` | EP-1, EP-6 |
+| Sort | `sortBy={field}`, `sortOrder=desc` | EP-1 |
 | Auth header | `Authorization: Bearer {JWT}` | EP-1 through EP-7 |

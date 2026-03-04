@@ -34,14 +34,14 @@ flowchart TD
     TOKEN_CHECK -- Yes --> LOGIN_PROMPT
     TOKEN_CHECK -- No --> TOKEN_OK
 
-    TOKEN_OK --> FETCH_LIST[GET /v5/challenges<br/>WF7-A: Loading state]
+    TOKEN_OK --> FETCH_LIST[GET /v6/challenges<br/>WF7-A: Loading state]
     FETCH_LIST -- Network Error --> ERROR_STATE[WF7-C: API Error<br/>Retry button]
     ERROR_STATE --> FETCH_LIST
     FETCH_LIST -- Empty Array --> EMPTY_STATE[WF7-B: Empty State<br/>Browse Challenges button]
     FETCH_LIST -- Success --> TREE[WF1: Challenge Explorer<br/>Tree populated]
 
     TREE --> SELECT[User clicks challenge]
-    SELECT --> DETAIL[GET /v5/challenges/id]
+    SELECT --> DETAIL[GET /v6/challenges/id]
     DETAIL --> SB[WF3: Status Bar<br/>Countdown + Req counter]
 
     SELECT --> SPEC_CLICK[Click: Spec and Requirements]
@@ -56,7 +56,7 @@ flowchart TD
     FORUM_AVAIL -- Success --> FORUM[WF6: Forum Webview<br/>Posts + Timeline]
 
     SELECT --> SUB_CLICK[Click: Submissions]
-    SUB_CLICK --> SUB_VIEW[Submission History<br/>from GET /v5/submissions]
+    SUB_CLICK --> SUB_VIEW[Submission History<br/>from GET /v6/submissions]
 
     SPEC --> CHECK_REQ[Topcoder: Check Requirements]
     CHECK_REQ --> CHECKER[WF4: Inline Checker<br/>Diagnostics + Decorations]
@@ -104,9 +104,9 @@ This wireframe shows the primary entry point — a new "Topcoder" icon in the Ac
 
 ### Annotations
 - **Activity Bar Icon ("TC"):** Custom Topcoder icon registered via `viewsContainers.activitybar` in `package.json`. Activates the Topcoder sidebar on click.
-- **Tree Nodes:** Each challenge is a collapsible `TreeItem` with `label` = challenge name and `description` = status badge (`Active`, `Upcoming`). Status badge uses `TreeItemLabel` with highlight color.
+- **Tree Nodes:** Each challenge is a collapsible `TreeItem` with `label` = challenge name and `description` = status badge (`ACTIVE`, `DRAFT`). Status badge uses `TreeItemLabel` with highlight color.
 - **Child Nodes:** Five fixed children per challenge: Spec & Requirements, Discussions, Submissions, Registrants, Timeline. Each has a contextual icon (`$(book)`, `$(comment)`, `$(cloud-upload)`, `$(person)`, `$(clock)`) and shows a count where applicable.
-- **Refresh Button:** Inline toolbar action on the tree view header. Triggers `GET /v5/challenges` re-fetch.
+- **Refresh Button:** Inline toolbar action on the tree view header. Triggers `GET /v6/challenges` re-fetch.
 - **Login Info:** Footer section in sidebar showing current handle, sourced from the decoded JWT stored in `SecretStorage`.
 - **Status Bar Items:** Two items — countdown timer (left-aligned, priority 100) and requirements progress (right-aligned, priority 50). Both are `StatusBarItem` instances disposed on deactivation.
 
@@ -157,10 +157,10 @@ Opens when the user clicks "Spec & Requirements" in the tree. A full-width edito
 
 ### Annotations
 - **Webview Panel:** Created via `vscode.window.createWebviewPanel()` with `viewType: 'topcoder.specView'`. Opened in the editor area (column `ViewColumn.One`).
-- **Toolbar:** Implemented as HTML buttons inside the webview. Communication via `postMessage()` → extension host processes commands (refresh fetches `GET /v5/challenges/{id}` again; attachments triggers download flow; copy writes spec markdown to clipboard via `vscode.env.clipboard`).
+- **Toolbar:** Implemented as HTML buttons inside the webview. Communication via `postMessage()` → extension host processes commands (refresh fetches `GET /v6/challenges/{id}` again; attachments triggers download flow; copy writes spec markdown to clipboard via `vscode.env.clipboard`).
 - **Spec Rendering:** Raw `description` field from challenge API is rendered with `markdown-it`. All HTML is sanitized with `sanitize-html` before injection.
 - **Requirements Checklist:** Extracted from the spec body by parsing bullet lists / numbered items containing keywords like "must", "should", "required". Checkbox state persisted in `workspaceState` keyed by `challengeId`.
-- **Collapsible Sections:** Pure HTML `<details>/<summary>` elements. Attachments section lists files from `GET /v5/challenges/{id}/attachments`; clicking downloads via `vscode.env.openExternal`.
+- **Collapsible Sections:** Pure HTML `<details>/<summary>` elements. Attachments section lists files from `GET /v6/challenges/{id}/attachments`; clicking downloads via `vscode.env.openExternal`.
 - **Content Security Policy:** Webview HTML includes strict CSP: `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https:;`. No inline styles or scripts without nonce.
 
 ---
@@ -198,7 +198,7 @@ Persistent status bar items showing phase countdown and requirements progress. A
 ```
 
 ### Annotations
-- **Countdown Timer:** `StatusBarItem` with `alignment: StatusBarAlignment.Left` and `priority: 100`. Text updates every 60 seconds via `setInterval` (cleared on dispose). Time remaining calculated from the current phase's `scheduledEndDate` from `GET /v5/challenges/{id}` response.
+- **Countdown Timer:** `StatusBarItem` with `alignment: StatusBarAlignment.Left` and `priority: 100`. Text updates every 60 seconds via `setInterval` (cleared on dispose). Time remaining calculated from the current phase's `scheduledEndDate` from `GET /v6/challenges/{id}` response.
 - **Color Coding:** `backgroundColor` uses `ThemeColor` — `statusBarItem.warningBackground` for yellow (4–24h), `statusBarItem.errorBackground` for red (<4h), default for green (>24h).
 - **Tooltip:** Multi-line tooltip string listing all phases with status icons. Built from the `phases[]` array in the challenge detail response.
 - **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF6, Tier C) or scrolls to the timeline section in the spec webview.
@@ -371,8 +371,8 @@ A split webview panel combining threaded forum posts and a visual timeline bar f
 
 ### Annotations
 - **Webview Panel:** Created via `createWebviewPanel()` with `viewType: 'topcoder.forumTimeline'`. Can be opened in the editor area or the secondary sidebar (VS Code 1.85+ `ViewColumn.Beside`).
-- **Timeline Bar:** Horizontal progress bar rendered in HTML/CSS. Each phase is a `<div>` segment with width proportional to its duration. Colors: green (completed), yellow/animated (active), gray (upcoming). Data sourced from `phases[]` in `GET /v5/challenges/{id}`.
-- **Forum Posts:** Fetched via `GET /v5/challenge-discussions?challengeId={id}` (or polled from the challenge object's discussion metadata). Each post rendered as a card with author avatar placeholder, handle, timestamp (relative via `date-fns`), role badge, and body text.
+- **Timeline Bar:** Horizontal progress bar rendered in HTML/CSS. Each phase is a `<div>` segment with width proportional to its duration. Colors: green (completed), yellow/animated (active), gray (upcoming). Data sourced from `phases[]` in `GET /v6/challenges/{id}`.
+- **Forum Posts:** Discussions metadata is embedded in the challenge object's `discussions[]` array (Vanilla forum provider at `discussions.topcoder.com`). Each post rendered as a card with author avatar placeholder, handle, timestamp (relative via `date-fns`), role badge, and body text.
 - **Auto-Poll:** Configurable interval (default 120s, range 60–300s) via `topcoder.pollInterval` setting. A `setInterval` re-fetches the discussion endpoint; new posts trigger a badge count update on the tree node and an optional `showInformationMessage` notification.
 - **Reply Link:** Opens the challenge forum in the browser via `vscode.env.openExternal(forumUrl)` — the plugin is read-only, no in-IDE posting.
 - **Sort/Filter:** Client-side controls in the webview. Sort by date (latest/oldest), filter by author role (Copilot/Member/All). State managed in webview JavaScript.
@@ -385,10 +385,10 @@ A split webview panel combining threaded forum posts and a visual timeline bar f
 
 | Wireframe | Tier | VS Code API Used | Primary API Call |
 |-----------|------|-------------------|-----------------|
-| WF1: Challenge Explorer | A | `TreeDataProvider`, `StatusBarItem` | `GET /v5/challenges` |
-| WF2: Spec Webview | A | `WebviewPanel`, `env.clipboard` | `GET /v5/challenges/{id}` |
-| WF3: Status Bar | A | `StatusBarItem`, `ThemeColor` | `GET /v5/challenges/{id}` (phases) |
+| WF1: Challenge Explorer | A | `TreeDataProvider`, `StatusBarItem` | `GET /v6/challenges` |
+| WF2: Spec Webview | A | `WebviewPanel`, `env.clipboard` | `GET /v6/challenges/{id}` |
+| WF3: Status Bar | A | `StatusBarItem`, `ThemeColor` | `GET /v6/challenges/{id}` (phases) |
 | WF4: Inline Checker | B | `HoverProvider`, `DiagnosticCollection`, `TextEditorDecorationType` | Workspace file scan |
 | WF5: Checklist Panel | B | `TreeDataProvider` (checkboxState), `workspaceState` | Workspace file scan |
-| WF6: Forum & Timeline | C | `WebviewPanel`, `setInterval` | `GET /v5/challenge-discussions` |
+| WF6: Forum & Timeline | C | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
 | WF7: Edge States | A/B/C | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |

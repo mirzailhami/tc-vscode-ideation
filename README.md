@@ -104,13 +104,13 @@ All 8 API calls target **existing** Topcoder endpoints:
 
 | # | Endpoint | Purpose |
 |---|----------|---------|
-| 1 | `GET /v5/challenges` | List active challenges |
-| 2 | `GET /v5/challenges/{id}` | Challenge detail + spec |
-| 3 | `GET /v5/challenges/{id}/attachments` | Attachment files |
-| 4 | `GET /v5/resources` | Resource roles (registrants) |
-| 5 | `GET /v5/challenge-discussions` | Forum posts |
-| 6 | `GET /v5/submissions` | Submission history |
-| 7 | `GET /v5/members/{handle}` | Member profile |
+| 1 | `GET /v6/challenges` | List active challenges |
+| 2 | `GET /v6/challenges/{id}` | Challenge detail + spec |
+| 3 | `GET /v6/challenges/{id}/attachments` | Attachment files |
+| 4 | `GET /v6/resources` | Resource roles (registrants) |
+| 5 | Embedded in challenge object → `discussions[]` | Forum metadata (Vanilla provider) |
+| 6 | `GET /v6/submissions` | Submission history |
+| 7 | `GET /v6/members?handle={handle}` | Member profile |
 | 8 | `POST auth0/oauth/token` | Authentication |
 
 Full details with query params, auth headers, response fields, caching strategy, and **verified sample payloads** in [architecture.md](architecture.md#10-api-verification-appendix). Requirement traceability matrix and quality gates in [dev-requirements.md](dev-requirements.md#11-requirement-traceability-matrix).
