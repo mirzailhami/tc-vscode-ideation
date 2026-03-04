@@ -15,7 +15,7 @@ graph TD
     D --> F[Attachments: GET /v6/challenges/id/attachments → Download/Open]
     D --> G[Status Bar: Countdown from phases]
     E --> H[Polling: 60–300s → refresh timeline/forum]
-    H --> L[Forum: discussions[] from challenge object]
+    H --> L[Forum: discussions from challenge object]
 ```
 
 ---
