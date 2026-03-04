@@ -195,13 +195,13 @@ Persistent status bar items showing phase countdown and requirements progress. A
 - **Countdown Timer:** `StatusBarItem` with `alignment: StatusBarAlignment.Left` and `priority: 100`. Text updates every 60 seconds via `setInterval` (cleared on dispose). Time remaining calculated from the current phase's `scheduledEndDate` from `GET /v6/challenges/{id}` response.
 - **Color Coding:** `backgroundColor` uses `ThemeColor` — `statusBarItem.warningBackground` for yellow (4–24h), `statusBarItem.errorBackground` for red (<4h), default for green (>24h).
 - **Tooltip:** Multi-line tooltip string listing all phases with status icons. Built from the `phases[]` array in the challenge detail response.
-- **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF6, Tier C) or scrolls to the timeline section in the spec webview.
+- **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF6, Tier B) or scrolls to the timeline section in the spec webview.
 - **Requirements Counter:** Separate `StatusBarItem` at `StatusBarAlignment.Right`. Shows `checked/total` from `workspaceState`. Click opens the requirements section in the Spec Webview (WF2).
 - **Lifecycle:** Both items created in `activate()`, stored in `ExtensionContext.subscriptions` for automatic disposal.
 
 ---
 
-## WF6: Forum & Timeline Sidebar (Tier C)
+## WF6: Forum & Timeline Sidebar (Tier B)
 
 A split webview panel combining threaded forum posts and a visual timeline bar for challenge phases.
 
@@ -275,5 +275,5 @@ A split webview panel combining threaded forum posts and a visual timeline bar f
 | WF1: Challenge Explorer | A | `TreeDataProvider`, `StatusBarItem` | `GET /v6/challenges` |
 | WF2: Spec Webview | A | `WebviewPanel`, `env.clipboard` | `GET /v6/challenges/{id}` |
 | WF3: Status Bar | A | `StatusBarItem`, `ThemeColor` | `GET /v6/challenges/{id}` (phases) |
-| WF6: Forum & Timeline | C | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
-| WF7: Edge States | A/C | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |
+| WF6: Forum & Timeline | B | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
+| WF7: Edge States | A/B | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |

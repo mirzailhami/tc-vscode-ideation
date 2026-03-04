@@ -245,10 +245,10 @@ topcoder-vscode-plugin/
           "maximum": 300,
           "description": "Forum/timeline auto-refresh interval in seconds."
         },
-        "topcoder.enableTierC": {
+        "topcoder.enableTierB": {
           "type": "boolean",
           "default": false,
-          "description": "Enable Tier C features: Forum & Timeline Live Feed."
+          "description": "Enable Tier B features: Forum & Timeline Live Feed."
         },
         "topcoder.maxChallenges": {
           "type": "number",
@@ -413,7 +413,7 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 | Tier | Scope | Estimated Hours | Priority |
 |------|-------|----------------|----------|
 | **A: Explorer + Spec** | Auth, tree view, spec webview, status bar, attachments | 40–60 hours | High (core value) |
-| **C: Forum + Timeline** | Forum webview, timeline bar, auto-poll, post cards, pagination | 20–30 hours | Medium (utility) |
+| **B: Forum + Timeline** | Forum webview, timeline bar, auto-poll, post cards, pagination | 20–30 hours | Medium (utility) |
 | **Testing + Polish** | Unit tests, integration tests, error handling, README, packaging | 15–20 hours | High |
 | **Total** | All tiers + testing | **~75–110 hours** | — |
 
@@ -424,8 +424,8 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 3. Spec webview (Tier A primary deliverable)
 4. Status bar countdown (Tier A, quick win)
 5. Attachments (Tier A, small scope)
-6. Forum feed (Tier C)
-7. Timeline bar (Tier C)
+6. Forum feed (Tier B)
+7. Timeline bar (Tier B)
 8. Testing, polish, packaging
 
 ---
@@ -464,14 +464,14 @@ Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included 
 | R-07 | Status bar countdown timer | A | `status-bar.ts` | WF3 | EP-2 (phases field) | Manual: color coding at thresholds | ✅ Covered |
 | R-08 | Download/view attachments | A | `webview-manager.ts` | WF2 | EP-3: `GET /v6/challenges/{id}/attachments` | `api-client.test.ts`: attachment list; manual: download | ✅ Covered |
 | R-09 | Show registrants | A | `challenge-provider.ts` | WF1 | EP-4: `GET /v6/resources` | `challenge-provider.test.ts`: registrant count | ✅ Covered |
-| R-10 | Forum/discussions view | C | `forum-provider.ts` | WF6 | EP-5: `discussions[]` from challenge object | Manual: forum rendering | ✅ Covered |
+| R-10 | Forum/discussions view | B | `forum-provider.ts` | WF6 | EP-5: `discussions[]` from challenge object | Manual: forum rendering | ✅ Covered |
 | R-11 | Submission history | A | `webview-manager.ts` | WF2 | EP-6: `GET /v6/submissions` | `api-client.test.ts`: submission list | ✅ Covered |
 | R-13 | Auth via OAuth2 / JWT | A | `auth.ts` | — | EP-8: `POST /oauth/token` | `auth.test.ts`: token decode, expiry | ✅ Covered |
 | R-14 | Secure token storage | A | `auth.ts` | — | — | `auth.test.ts`: SecretStorage mock | ✅ Covered |
-| R-15 | Polling for live updates | C | `forum-provider.ts` | WF6 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
+| R-15 | Polling for live updates | B | `forum-provider.ts` | WF6 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
 | R-16 | User profile display | A | `challenge-provider.ts` | WF1 (footer) | EP-7: `GET /v6/members?handle={h}` | Manual: login display | ✅ Covered |
 | R-17 | No new API endpoints | — | All modules | — | Verified in EP-1–EP-8 | API appendix audit | ✅ Covered |
-| R-18 | Edge states (loading/empty/error/expired) | A/C | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
+| R-18 | Edge states (loading/empty/error/expired) | A/B | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
 | R-19 | Multiple ideas / modular tiers | — | N/A (design) | extras.md | — | Content review | ✅ Covered |
 
 ---

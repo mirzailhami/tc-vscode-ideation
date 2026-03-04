@@ -15,7 +15,7 @@ The design is organized into **two modular tiers** that can be enabled independe
 | Tier | Feature Set | Pain Solved |
 |------|------------|-------------|
 | **A** | Challenge Explorer + Spec Reader + Manual Checklist | Browser ↔ IDE switching; missing spec details; tracking requirements |
-| **C** | Forum & Timeline Live Feed | Missing forum updates; no phase timer visibility |
+| **B** | Forum & Timeline Live Feed | Missing forum updates; no phase timer visibility |
 
 All features rely exclusively on **existing Topcoder v6 APIs** — no new endpoints are proposed.
 
@@ -82,7 +82,7 @@ All files use standard Markdown with optional Mermaid fenced code blocks and HTM
 - Attachment download links
 - Status bar countdown timer with color-coded urgency
 
-### Tier C: Forum & Timeline Live Feed
+### Tier B: Forum & Timeline Live Feed
 - Forum webview with threaded post cards and relative timestamps
 - Auto-polling with configurable interval (60–300s)
 - Visual timeline bar showing all challenge phases with progress
