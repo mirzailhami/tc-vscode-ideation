@@ -15,8 +15,6 @@ graph TD
     D --> F[Attachments: GET /v6/challenges/id/attachments → Download/Open]
     D --> G[Status Bar: Countdown from phases]
     E --> H[Polling: 60–300s → refresh timeline/forum]
-    I[Commands] --> J[Check Requirements → keyword match code vs spec]
-    J --> K[DiagnosticCollection: uncovered warnings]
     H --> L[Forum: discussions[] from challenge object]
 ```
 
@@ -36,7 +34,6 @@ graph LR
 
     subgraph Providers
         TREE[challenge-provider.ts<br/>TreeDataProvider]
-        REQS[requirement-checker.ts<br/>HoverProvider + Diagnostics]
         SB[status-bar.ts<br/>StatusBarItem x 2]
     end
 
@@ -47,7 +44,6 @@ graph LR
 
     EXT -->|registers| AUTH
     EXT -->|registers| TREE
-    EXT -->|registers| REQS
     EXT -->|registers| SB
     EXT -->|registers| SPEC
     EXT -->|registers| FORUM
@@ -73,11 +69,10 @@ graph LR
 | `auth.ts` | OAuth2 device/browser flow. Stores JWT in `context.secrets`. Decodes token for handle/userId. Detects expiry. | `AuthService` class |
 | `api-client.ts` | Centralized HTTP client (axios). Attaches `Authorization: Bearer` header. Implements caching (globalState + TTL), retry logic (3 retries, exponential backoff), and `CancellationToken` support. | `ApiClient` class |
 | `config.ts` | Reads `workspace.getConfiguration('topcoder')`. Validates and exposes typed settings. | `getConfig()` helper |
-| `types.ts` | TypeScript interfaces: `Challenge`, `Phase`, `Attachment`, `Discussion`, `Submission`, `Requirement`, `CacheEntry<T>`. | Type-only exports |
+| `types.ts` | TypeScript interfaces: `Challenge`, `Phase`, `Attachment`, `Discussion`, `Submission`, `CacheEntry<T>`. | Type-only exports |
 | `challenge-provider.ts` | `TreeDataProvider<ChallengeTreeItem>`. Fetches challenge list, builds tree nodes with children (Spec, Requirements, Attachments, Forum, Timeline). | `ChallengeProvider` class |
 | `webview-manager.ts` | Creates/manages the Spec Webview panel. Renders markdown via `markdown-it`, sanitizes HTML, handles `postMessage` commands (refresh, copy, toggle checkbox). | `WebviewManager` class |
 | `status-bar.ts` | Creates two `StatusBarItem` instances (countdown + requirements counter). Updates countdown every 60s. Color-codes by urgency. | `StatusBarManager` class |
-| `requirement-checker.ts` | Parses spec into requirement items. Keyword extraction. Workspace file scanning. Registers `HoverProvider`. Manages `DiagnosticCollection` and `TextEditorDecorationType`. | `RequirementChecker` class |
 | `forum-provider.ts` | Creates/manages the Forum & Timeline Webview. Fetches discussions. Renders post cards. Manages auto-poll interval. Handles pagination. | `ForumProvider` class |
 
 ---
@@ -255,7 +250,6 @@ The extension activates after VS Code finishes loading. No blocking `onStartup` 
 | Toggle checkbox | `workspaceState.update()` | (none — local only) | Counter: 6/8 |
 | Download attachment | `env.openExternal()` | `GET /v6/.../attachments` | Browser opens download |
 | Refresh | `ApiClient.getList()` | `GET /v6/challenges` | Tree: updated list |
-| Check requirements | `RequirementChecker` | (none — workspace scan) | Diagnostics, decorations |
 | View forum | `ForumProvider.show()` | `GET /v6/challenges/{id}` → `discussions[]` | Webview: forum link |
 | Auto-poll tick | `ForumProvider.poll()` | `GET /v6/challenges/{id}` → `discussions[]` | Badge count, new posts |
 

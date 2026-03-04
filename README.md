@@ -10,15 +10,14 @@
 
 This submission presents a complete ideation and technical design for a **read-only VS Code extension** that brings Topcoder challenge information directly into the editor. The plugin eliminates constant browser-to-IDE context switching by surfacing challenge specs, requirements checklists, forum discussions, phase timelines, and attachments — all within VS Code panels and views.
 
-The design is organized into **three modular tiers** that can be enabled independently:
+The design is organized into **two modular tiers** that can be enabled independently:
 
 | Tier | Feature Set | Pain Solved |
 |------|------------|-------------|
-| **A** | Challenge Explorer + Spec Reader | Browser ↔ IDE switching; missing spec details |
-| **B** | Inline Requirement Checker + Checklist | Missing subtle requirements; no code-to-spec traceability |
+| **A** | Challenge Explorer + Spec Reader + Manual Checklist | Browser ↔ IDE switching; missing spec details; tracking requirements |
 | **C** | Forum & Timeline Live Feed | Missing forum updates; no phase timer visibility |
 
-All features rely exclusively on **existing Topcoder v5/v6 APIs** — no new endpoints are proposed.
+All features rely exclusively on **existing Topcoder v6 APIs** — no new endpoints are proposed.
 
 ---
 
@@ -26,7 +25,7 @@ All features rely exclusively on **existing Topcoder v5/v6 APIs** — no new end
 
 | File | Description | Scoring Area |
 |------|-------------|-------------|
-| [wireframes.md](wireframes.md) | 7 wireframes (WF1–WF7) with annotations + end-to-end user flow diagram | 50% — Wireframes |
+| [wireframes.md](wireframes.md) | 5 wireframes (WF1–WF3, WF6–WF7) with annotations + end-to-end user flow diagram | 50% — Wireframes |
 | [glossary.md](glossary.md) | 59-entry developer glossary: every UI element, interaction, data concept | 50% — Glossary |
 | [architecture.md](architecture.md) | Component diagrams, 8-endpoint API table with verified sample payloads, field-to-UI mapping, auth flow, security, performance, error handling | 25% — Architecture + API |
 | [dev-requirements.md](dev-requirements.md) | Prerequisites, dependencies, file structure, package.json, build, testing, risks, requirement traceability matrix, quality gates | 50% — Dev Requirements |
@@ -74,21 +73,14 @@ All files use standard Markdown with optional Mermaid fenced code blocks and HTM
 
 ---
 
-## Three Tiers at a Glance
+## Two Tiers at a Glance
 
 ### Tier A: Challenge Explorer + Spec Reader
 - Activity bar icon with tree view of active challenges
 - Rich webview rendering full challenge spec as formatted markdown
-- Requirements checklist with manual checkboxes (persisted)
+- Requirements checklist with manual checkboxes for personal progress tracking (persisted)
 - Attachment download links
 - Status bar countdown timer with color-coded urgency
-
-### Tier B: Inline Requirement Checker + Checklist
-- Hover provider linking code lines to matched requirements via keywords
-- Gutter decorations (green = checked, gray = unchecked)
-- Problems panel warnings for uncovered requirements
-- Dedicated requirements checklist tree view with progress bar
-- Workspace scan command with progress indicator
 
 ### Tier C: Forum & Timeline Live Feed
 - Forum webview with threaded post cards and relative timestamps

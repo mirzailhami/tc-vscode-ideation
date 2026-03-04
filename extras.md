@@ -1,13 +1,13 @@
 # Extras — Bonus Enhancement Ideas
 
-> **Purpose:** Optional innovations that go beyond the three core tiers. Each idea is described with enough detail for a reviewer to evaluate feasibility and value. These are future-facing — none are required for the current submission.
+> **Purpose:** Optional innovations that go beyond the core feature tiers. Each idea is described with enough detail for a reviewer to evaluate feasibility and value. These are future-facing — none are required for the current submission.
 
 ---
 
 ## 1. AI-Powered Requirement Extraction
 
 ### Problem
-Tier B's keyword matching relies on simple tokenization to extract requirements from spec markdown. This approach misses requirements phrased as paragraphs, embedded in tables, or written in non-standard formats (e.g., "the system must..." vs. a bullet list).
+The current manual checklist in WF2 relies on the user to identify and track requirements from the spec. In complex specs with dozens of requirements spread across paragraphs, tables, and nested lists, it’s easy to miss items.
 
 ### Proposed Enhancement
 Use a lightweight language model to parse the full spec and produce a structured list of actionable requirements automatically.
@@ -33,7 +33,7 @@ interface ExtractedRequirement {
 ```
 
 ### Value
-Eliminates manual requirement identification. Works on any spec format. Dramatically improves Tier B accuracy.
+Eliminates manual requirement identification. Works on any spec format. Dramatically improves the accuracy and completeness of the requirements checklist in WF2.
 
 ---
 
@@ -135,7 +135,6 @@ Pre-configured keyboard shortcuts and a custom Quick Pick navigation menu.
 |----------|---------|-------------|
 | `Ctrl+Shift+T S` | `topcoder.openSpec` | Open spec for active challenge |
 | `Ctrl+Shift+T F` | `topcoder.openForum` | Open forum panel |
-| `Ctrl+Shift+T R` | `topcoder.checkRequirements` | Run requirement scan |
 | `Ctrl+Shift+T D` | `topcoder.openDashboard` | Open multi-challenge dashboard |
 | `Ctrl+Shift+T L` | `topcoder.login` | Trigger login |
 
@@ -158,7 +157,7 @@ Saves seconds per action, which compounds over a 48–72h challenge timeline. Ac
 
 | Enhancement | Effort | Dependency | Impact |
 |------------|--------|-----------|--------|
-| AI Requirement Extraction | 10–15h | Copilot API (optional) | High — accuracy improvement |
+| AI Requirement Extraction | 10–15h | Copilot API (optional) | High — auto-populates checklist |
 | Spec Diff Viewer | 4–6h | None (VS Code built-in diff) | High — prevents missed changes |
 | Submission Dry-Run | 8–12h | None | Medium — reduces failed submissions |
 | Multi-Challenge Dashboard | 10–15h | None | Medium — better overview |

@@ -10,8 +10,6 @@
 | WF1 | Activity Bar & Challenge Explorer | [`wireframes/WF1-challenge-explorer.excalidraw`](wireframes/WF1-challenge-explorer.excalidraw) |
 | WF2 | Spec & Requirements Webview | [`wireframes/WF2-spec-webview.excalidraw`](wireframes/WF2-spec-webview.excalidraw) |
 | WF3 | Status Bar Countdown | [`wireframes/WF3-status-bar.excalidraw`](wireframes/WF3-status-bar.excalidraw) |
-| WF4 | Inline Requirement Checker | [`wireframes/WF4-inline-checker.excalidraw`](wireframes/WF4-inline-checker.excalidraw) |
-| WF5 | Requirements Checklist Panel | [`wireframes/WF5-checklist-panel.excalidraw`](wireframes/WF5-checklist-panel.excalidraw) |
 | WF6 | Forum & Timeline Sidebar | [`wireframes/WF6-forum-timeline.excalidraw`](wireframes/WF6-forum-timeline.excalidraw) |
 | WF7 | Edge States (Loading / Empty / Error / Token Expired) | [`wireframes/WF7-edge-states.excalidraw`](wireframes/WF7-edge-states.excalidraw) |
 
@@ -57,10 +55,6 @@ flowchart TD
 
     SELECT --> SUB_CLICK[Click: Submissions]
     SUB_CLICK --> SUB_VIEW[Submission History<br/>from GET /v6/submissions]
-
-    SPEC --> CHECK_REQ[Topcoder: Check Requirements]
-    CHECK_REQ --> CHECKER[WF4: Inline Checker<br/>Diagnostics + Decorations]
-    CHECKER --> CHECKLIST[WF5: Checklist Panel<br/>Progress + Code matches]
 
     FORUM --> POLL[Auto-poll every 120s]
     POLL --> FORUM
@@ -159,7 +153,7 @@ Opens when the user clicks "Spec & Requirements" in the tree. A full-width edito
 - **Webview Panel:** Created via `vscode.window.createWebviewPanel()` with `viewType: 'topcoder.specView'`. Opened in the editor area (column `ViewColumn.One`).
 - **Toolbar:** Implemented as HTML buttons inside the webview. Communication via `postMessage()` → extension host processes commands (refresh fetches `GET /v6/challenges/{id}` again; attachments triggers download flow; copy writes spec markdown to clipboard via `vscode.env.clipboard`).
 - **Spec Rendering:** Raw `description` field from challenge API is rendered with `markdown-it`. All HTML is sanitized with `sanitize-html` before injection.
-- **Requirements Checklist:** Extracted from the spec body by parsing bullet lists / numbered items containing keywords like "must", "should", "required". Checkbox state persisted in `workspaceState` keyed by `challengeId`.
+- **Requirements Checklist:** Manual progress-tracking checkboxes for the user to mark requirements as they work through them. Requirements are extracted from the spec body by parsing bullet lists / numbered items. Checkbox state persisted in `workspaceState` keyed by `challengeId`. This is a personal productivity aid — not an automated assessment tool.
 - **Collapsible Sections:** Pure HTML `<details>/<summary>` elements. Attachments section lists files from `GET /v6/challenges/{id}/attachments`; clicking downloads via `vscode.env.openExternal`.
 - **Content Security Policy:** Webview HTML includes strict CSP: `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https:;`. No inline styles or scripts without nonce.
 
@@ -202,115 +196,8 @@ Persistent status bar items showing phase countdown and requirements progress. A
 - **Color Coding:** `backgroundColor` uses `ThemeColor` — `statusBarItem.warningBackground` for yellow (4–24h), `statusBarItem.errorBackground` for red (<4h), default for green (>24h).
 - **Tooltip:** Multi-line tooltip string listing all phases with status icons. Built from the `phases[]` array in the challenge detail response.
 - **Click Action:** `command` property set to `topcoder.openTimeline` which opens the Timeline webview (WF6, Tier C) or scrolls to the timeline section in the spec webview.
-- **Requirements Counter:** Separate `StatusBarItem` at `StatusBarAlignment.Right`. Shows `checked/total` from `workspaceState`. Click opens the requirements checklist panel.
+- **Requirements Counter:** Separate `StatusBarItem` at `StatusBarAlignment.Right`. Shows `checked/total` from `workspaceState`. Click opens the requirements section in the Spec Webview (WF2).
 - **Lifecycle:** Both items created in `activate()`, stored in `ExtensionContext.subscriptions` for automatic disposal.
-
----
-
-## WF4: Inline Requirement Checker (Tier B)
-
-Decorations and diagnostics overlaid on the code editor, connecting source code to spec requirements via keyword matching.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  TAB BAR                                                            │
-│  [$(book) API Spec]  [auth.ts ●]  [server.ts]                      │
-├─────────────────────────────────────────────────────────────────────┤
-│  CODE EDITOR: auth.ts                                               │
-│                                                                     │
-│   1 │ import jwt from 'jsonwebtoken';                               │
-│   2 │                                                               │
-│   3 │ export async function authenticate(                           │
-│   4 │   req: Request, res: Response                                 │
-│   5 │ ) {                                                           │
-│   6 │   const token = req.headers.authorization;                    │
-│   7 │   // ... JWT verification logic                               │
-│   8 │ }  ◀── HOVER ─────────────────────────────────────────┐      │
-│   9 │                │  $(info) Linked Requirement           │      │
-│  10 │ export async   │  ─────────────────────────────────    │      │
-│  11 │   function     │  REQ-1: Implement JWT authentication  │      │
-│  12 │   register(    │  endpoint with token generation and   │      │
-│  13 │   ...          │  validation.                          │      │
-│  14 │                │  Status: ✅ Checked                   │      │
-│  15 │                │  [Toggle Checked] [Open in Spec]      │      │
-│  16 │                └───────────────────────────────────────┘      │
-│                                                                     │
-│  GUTTER DECORATIONS:                                                │
-│  Lines 3-8:  $(pass) green bar  (req matched & checked)             │
-│  Lines 10-20: $(circle-outline) gray bar (req matched, unchecked)   │
-│  Lines 25+:  (no decoration — no requirement linked)                │
-├─────────────────────────────────────────────────────────────────────┤
-│  PROBLEMS PANEL                                          [Filter ▾] │
-│  ─────────────────────────────────────────────────────────────────  │
-│  ⚠ Topcoder Requirements (3 uncovered)                              │
-│    $(warning) REQ-4: Rate limiting — no matching code found         │
-│               → Expected keywords: rate, limit, throttle            │
-│    $(warning) REQ-6: Unit test coverage — no test files detected    │
-│               → Expected: *.test.ts, *.spec.ts files                │
-│    $(warning) REQ-8: API documentation — no swagger/openapi found   │
-│               → Expected: swagger, openapi, @ApiProperty            │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Annotations
-- **Hover Provider:** Registered via `vscode.languages.registerHoverProvider('*', ...)`. When triggered, scans the hovered line's text for keywords extracted from requirements. If a match is found, returns a `Hover` with requirement text, status, and action links (command URIs).
-- **Gutter Decorations:** `TextEditorDecorationType` instances for two states: matched+checked (green) and matched+unchecked (gray). Applied via `editor.setDecorations()` after scanning the document.
-- **Keyword Matching:** Each requirement is pre-processed into a keyword set (nouns + technical terms extracted via simple tokenization). A code line matches if it contains ≥2 keywords from any requirement. Matching is case-insensitive.
-- **Problems Panel:** `DiagnosticCollection` created via `vscode.languages.createDiagnosticCollection('topcoder')`. Uncovered requirements appear as `DiagnosticSeverity.Warning`. Diagnostics point to a synthetic range (line 1, col 1 of the active file) since they are project-level, not line-level.
-- **Command: "Topcoder: Check Requirements":** Scans all workspace files (respecting `.gitignore`) for keyword matches, then updates the `DiagnosticCollection` with uncovered requirements.
-- **Performance:** File scanning is debounced (500ms after last edit) and runs in a `withProgress` wrapper to show progress in the notification area. Uses `CancellationToken` to abort if the user triggers another scan.
-
----
-
-## WF5: Requirements Checklist Panel (Tier B)
-
-A dedicated tree view or webview showing all extracted requirements as a tracked checklist with progress visualization.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  SIDEBAR: TOPCODER                                                  │
-├─────────────────────────────────────────────────────────────────────┤
-│  MY ACTIVE CHALLENGES                                [$(refresh)]   │
-│  ─────────────────────────────────────────────────────────────────  │
-│  [collapsed tree — see WF1]                                         │
-│                                                                     │
-├─────────────────────────────────────────────────────────────────────┤
-│  REQUIREMENTS CHECKLIST                    [$(export) Export] [$(refresh)]│
-│  ─────────────────────────────────────────────────────────────────  │
-│  API Microservice Challenge                                         │
-│                                                                     │
-│  Progress: ████████░░░░░░░░ 62% (5/8)                              │
-│                                                                     │
-│  [x] REQ-1  JWT authentication endpoint          $(pass-filled)     │
-│      Matched: auth.ts:3, auth.ts:22                                 │
-│  [x] REQ-2  User registration + email validation $(pass-filled)     │
-│      Matched: register.ts:15                                        │
-│  [x] REQ-3  Profile CRUD operations              $(pass-filled)     │
-│      Matched: profile.controller.ts:8                               │
-│  [ ] REQ-4  Rate limiting (100 req/min)           $(circle-outline) │
-│      ⚠ No matching code found                                       │
-│  [x] REQ-5  PostgreSQL schema + migrations        $(pass-filled)    │
-│      Matched: migrations/*.sql (4 files)                            │
-│  [ ] REQ-6  Unit test coverage ≥ 80%              $(circle-outline) │
-│      ⚠ No test files detected                                       │
-│  [x] REQ-7  Docker Compose setup                  $(pass-filled)    │
-│      Matched: docker-compose.yml                                    │
-│  [ ] REQ-8  API documentation (Swagger)           $(circle-outline) │
-│      ⚠ No swagger/openapi files found                               │
-│                                                                     │
-│  ─────────────────────────────────────────────────────────────────  │
-│  [$(run-all) Re-scan Workspace]  [$(clear-all) Reset Checks]       │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Annotations
-- **View Registration:** Registered as a second view (`topcoder.requirementsView`) under the same `viewsContainers.activitybar` entry as the challenge explorer. Uses `TreeDataProvider` with `TreeItem` nodes.
-- **Progress Bar:** Rendered as a text-based progress indicator in the tree view's header description, or as HTML in a webview variant. Percentage calculated from checked/total requirements.
-- **Checkbox Toggle:** `TreeItem.checkboxState` (VS Code 1.79+) for native checkbox support. State changes fire `onDidChangeCheckboxState` event → persist to `workspaceState`.
-- **Code Match Lines:** Child `TreeItem` nodes under each requirement showing file paths where keywords matched. Clicking navigates to the file and line (`vscode.commands.executeCommand('vscode.open', uri, { selection })`).
-- **Export Command:** `topcoder.exportChecklist` writes a markdown checklist to clipboard or to a `CHECKLIST.md` file in the workspace root.
-- **Re-scan:** Triggers the full workspace keyword scan (same as WF4's "Check Requirements" command), then refreshes the tree.
-- **Persistence:** Checkbox states stored in `context.workspaceState.update('topcoder.checklist.' + challengeId, checkedIds[])`. Survives VS Code restarts.
 
 ---
 
@@ -388,7 +275,5 @@ A split webview panel combining threaded forum posts and a visual timeline bar f
 | WF1: Challenge Explorer | A | `TreeDataProvider`, `StatusBarItem` | `GET /v6/challenges` |
 | WF2: Spec Webview | A | `WebviewPanel`, `env.clipboard` | `GET /v6/challenges/{id}` |
 | WF3: Status Bar | A | `StatusBarItem`, `ThemeColor` | `GET /v6/challenges/{id}` (phases) |
-| WF4: Inline Checker | B | `HoverProvider`, `DiagnosticCollection`, `TextEditorDecorationType` | Workspace file scan |
-| WF5: Checklist Panel | B | `TreeDataProvider` (checkboxState), `workspaceState` | Workspace file scan |
 | WF6: Forum & Timeline | C | `WebviewPanel`, `setInterval` | `discussions[]` from challenge object |
-| WF7: Edge States | A/B/C | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |
+| WF7: Edge States | A/C | `viewsWelcome`, `showErrorMessage`, `showWarningMessage` | Error/empty/expired handling |

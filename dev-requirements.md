@@ -146,7 +146,6 @@ topcoder-vscode-plugin/
 │   ├── challenge-provider.ts  # TreeDataProvider for challenge explorer
 │   ├── webview-manager.ts     # Spec webview panel (create, render, messaging)
 │   ├── status-bar.ts          # StatusBarManager: countdown + req counter
-│   ├── requirement-checker.ts # HoverProvider, DiagnosticCollection, decorations
 │   └── forum-provider.ts      # Forum + Timeline webview panel
 ├── webview/
 │   ├── spec.html              # Spec webview HTML template
@@ -160,7 +159,6 @@ topcoder-vscode-plugin/
 │   │   ├── api-client.test.ts # Mock axios, test caching + retry
 │   │   ├── challenge-provider.test.ts  # Test tree node generation
 │   │   ├── auth.test.ts       # Test token parsing, expiry detection
-│   │   ├── requirement-checker.test.ts # Test keyword extraction + matching
 │   │   └── config.test.ts     # Test config defaults + overrides
 │   └── integration/
 │       └── extension.test.ts  # VS Code integration test (activate, commands)
@@ -210,12 +208,6 @@ topcoder-vscode-plugin/
           "id": "topcoder.challengeExplorer",
           "name": "My Active Challenges",
           "visibility": "visible"
-        },
-        {
-          "id": "topcoder.requirementsView",
-          "name": "Requirements Checklist",
-          "visibility": "collapsed",
-          "when": "topcoder.tierBEnabled"
         }
       ]
     },
@@ -226,8 +218,6 @@ topcoder-vscode-plugin/
       { "command": "topcoder.openSpec",          "title": "Topcoder: Open Spec" },
       { "command": "topcoder.openForum",         "title": "Topcoder: Open Forum" },
       { "command": "topcoder.openTimeline",      "title": "Topcoder: Open Timeline" },
-      { "command": "topcoder.checkRequirements", "title": "Topcoder: Check Requirements" },
-      { "command": "topcoder.exportChecklist",   "title": "Topcoder: Export Checklist" },
       { "command": "topcoder.copySpec",          "title": "Topcoder: Copy Spec to Clipboard" },
       { "command": "topcoder.openInBrowser",     "title": "Topcoder: Open in Browser" }
     ],
@@ -254,11 +244,6 @@ topcoder-vscode-plugin/
           "minimum": 60,
           "maximum": 300,
           "description": "Forum/timeline auto-refresh interval in seconds."
-        },
-        "topcoder.enableTierB": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable Tier B features: Inline Requirement Checker + Checklist."
         },
         "topcoder.enableTierC": {
           "type": "boolean",
@@ -381,7 +366,6 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 | `api-client.test.ts` | API calls return correct data; caching works (second call returns cached); retry logic on 429/5xx; 401 triggers re-login. | Mock `axios` with `jest.mock('axios')`. Mock `globalState` with in-memory `Map`. |
 | `challenge-provider.test.ts` | Tree nodes have correct labels, icons, children; empty state shows message node; refresh triggers re-fetch. | Mock `ApiClient`. |
 | `auth.test.ts` | JWT decode extracts handle; expiry detection works; logout clears storage. | Mock `context.secrets` with in-memory storage. |
-| `requirement-checker.test.ts` | Keyword extraction from requirements; file scanning finds matches; diagnostics generated for uncovered reqs. | Mock `vscode.workspace.findFiles` and `vscode.workspace.openTextDocument`. |
 | `config.test.ts` | Default values correct; overrides respected; invalid values clamped. | Mock `vscode.workspace.getConfiguration`. |
 
 ### Integration Tests (`@vscode/test-electron`)
@@ -403,7 +387,6 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 - [ ] Click "Spec & Requirements" → webview opens with formatted spec
 - [ ] Checkbox toggle persists across VS Code restart
 - [ ] Status bar shows countdown, color changes at thresholds
-- [ ] "Topcoder: Check Requirements" → Problems panel shows warnings
 - [ ] Forum webview loads posts, auto-refreshes
 - [ ] "Topcoder: Logout" → tree clears, status bar hides
 - [ ] No token in Output channel logs
@@ -422,7 +405,6 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 | **No network connectivity** | Medium | All features broken | Cached data remains accessible (read from `globalState`). Show offline banner. Queue refresh for when connectivity returns. |
 | **VS Code API breaking changes** | Low | Build failures | Engine constraint `^1.85`. Test against Stable + Insiders. Pin `@types/vscode` version. |
 | **Secret storage unavailable** | Very Low | Cannot store JWT | Fallback: prompt login every session. Never store token in plaintext. |
-| **Keyword matching false positives** | Medium | Incorrect requirement links | Allow user to manually override/dismiss. Provide confidence score. Make matching configurable. |
 
 ---
 
@@ -431,10 +413,9 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 | Tier | Scope | Estimated Hours | Priority |
 |------|-------|----------------|----------|
 | **A: Explorer + Spec** | Auth, tree view, spec webview, status bar, attachments | 40–60 hours | High (core value) |
-| **B: Requirement Checker** | Keyword extraction, hover provider, diagnostics, checklist tree, workspace scan | 20–30 hours | Medium (innovative) |
 | **C: Forum + Timeline** | Forum webview, timeline bar, auto-poll, post cards, pagination | 20–30 hours | Medium (utility) |
 | **Testing + Polish** | Unit tests, integration tests, error handling, README, packaging | 15–20 hours | High |
-| **Total** | All tiers + testing | **~100–140 hours** | — |
+| **Total** | All tiers + testing | **~75–110 hours** | — |
 
 ### Recommended Implementation Order
 
@@ -443,11 +424,9 @@ code --install-extension topcoder-vscode-plugin-0.1.0.vsix
 3. Spec webview (Tier A primary deliverable)
 4. Status bar countdown (Tier A, quick win)
 5. Attachments (Tier A, small scope)
-6. Requirements checklist (Tier B)
-7. Inline checker + diagnostics (Tier B)
-8. Forum feed (Tier C)
-9. Timeline bar (Tier C)
-10. Testing, polish, packaging
+6. Forum feed (Tier C)
+7. Timeline bar (Tier C)
+8. Testing, polish, packaging
 
 ---
 
@@ -481,19 +460,18 @@ Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included 
 | R-03 | Architecture with existing API usage | — | `architecture.md` | — | EP-1 through EP-8 | API appendix verification | ✅ Covered |
 | R-04 | Browse active challenges in sidebar | A | `challenge-provider.ts` | WF1 | EP-1: `GET /v6/challenges` | `challenge-provider.test.ts`: tree node labels, icons, children | ✅ Covered |
 | R-05 | Render challenge spec as markdown | A | `webview-manager.ts` | WF2 | EP-2: `GET /v6/challenges/{id}` | `api-client.test.ts`: detail fetch; manual: webview renders | ✅ Covered |
-| R-06 | Requirements checklist with checkboxes | A/B | `webview-manager.ts`, `requirement-checker.ts` | WF2, WF5 | EP-2 (description field) | `requirement-checker.test.ts`: extraction; manual: checkbox toggle | ✅ Covered |
+| R-06 | Requirements checklist with checkboxes | A | `webview-manager.ts` | WF2 | EP-2 (description field) | Manual: checkbox toggle + persistence | ✅ Covered |
 | R-07 | Status bar countdown timer | A | `status-bar.ts` | WF3 | EP-2 (phases field) | Manual: color coding at thresholds | ✅ Covered |
 | R-08 | Download/view attachments | A | `webview-manager.ts` | WF2 | EP-3: `GET /v6/challenges/{id}/attachments` | `api-client.test.ts`: attachment list; manual: download | ✅ Covered |
 | R-09 | Show registrants | A | `challenge-provider.ts` | WF1 | EP-4: `GET /v6/resources` | `challenge-provider.test.ts`: registrant count | ✅ Covered |
 | R-10 | Forum/discussions view | C | `forum-provider.ts` | WF6 | EP-5: `discussions[]` from challenge object | Manual: forum rendering | ✅ Covered |
 | R-11 | Submission history | A | `webview-manager.ts` | WF2 | EP-6: `GET /v6/submissions` | `api-client.test.ts`: submission list | ✅ Covered |
-| R-12 | Inline requirement checker + diagnostics | B | `requirement-checker.ts` | WF4 | Workspace scan (no API) | `requirement-checker.test.ts`: keyword match, diagnostics | ✅ Covered |
 | R-13 | Auth via OAuth2 / JWT | A | `auth.ts` | — | EP-8: `POST /oauth/token` | `auth.test.ts`: token decode, expiry | ✅ Covered |
 | R-14 | Secure token storage | A | `auth.ts` | — | — | `auth.test.ts`: SecretStorage mock | ✅ Covered |
 | R-15 | Polling for live updates | C | `forum-provider.ts` | WF6 | EP-5 (interval) | Manual: auto-refresh indicator | ✅ Covered |
 | R-16 | User profile display | A | `challenge-provider.ts` | WF1 (footer) | EP-7: `GET /v6/members?handle={h}` | Manual: login display | ✅ Covered |
 | R-17 | No new API endpoints | — | All modules | — | Verified in EP-1–EP-8 | API appendix audit | ✅ Covered |
-| R-18 | Edge states (loading/empty/error/expired) | A/B/C | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
+| R-18 | Edge states (loading/empty/error/expired) | A/C | All providers | WF7 (A–F) | Error handlers | Manual: disconnect network, expire token | ✅ Covered |
 | R-19 | Multiple ideas / modular tiers | — | N/A (design) | extras.md | — | Content review | ✅ Covered |
 
 ---
@@ -519,7 +497,6 @@ Only `dist/`, `media/`, `package.json`, `README.md`, and `LICENSE` are included 
 | `api-client.ts` | ≥ 90% | Critical path; caching + retry logic must be fully tested |
 | `auth.ts` | ≥ 90% | Security-sensitive; token handling must be airtight |
 | `challenge-provider.ts` | ≥ 85% | Core UI data source; tree node generation must be reliable |
-| `requirement-checker.ts` | ≥ 80% | Keyword matching has edge cases; good coverage prevents false positives |
 | `config.ts` | ≥ 95% | Simple module; easy to achieve full coverage |
 | `webview-manager.ts` | ≥ 60% | Webview creation is hard to unit test; rely on integration tests |
 | `forum-provider.ts` | ≥ 60% | Similar to webview; integration tests supplement |
